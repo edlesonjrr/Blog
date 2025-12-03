@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Pro — Simples & Elegante</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="logo">Blog<span>Pro</span></div>
+
+        <ul class="nav-links">
+            <li><a href="#">Início</a></li>
+            <li><a href="#posts-section">Posts</a></li>
+            <li><a href="#" id="btn-open-create-post">Criar Post</a></li>
+        </ul>
+
+        <div class="user-area">
+            <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" id="user-icon">
+            <button id="btn-login" class="btn">Login</button>
+            <button id="logout-btn" class="btn hidden">Sair</button>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <h1>Bem-vindo ao BlogPro</h1>
+        <p>Compartilhe ideias, escreva artigos e conecte-se com pessoas.</p>
+        <button class="btn hero-btn" id="scroll-posts">Ver postagens</button>
+    </section>
+
+    <!-- POSTS -->
+    <section id="posts-section">
+        <h2 class="section-title">Postagens Recentes</h2>
+        <div id="post-list" class="post-container"></div>
+    </section>
+
+    <!-- MODAL LOGIN -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <h2>Entrar</h2>
+
+            <form id="login-form">
+                <input type="text" id="login-user" placeholder="Usuário" required>
+                <input type="password" id="login-password" placeholder="Senha" required>
+                <button class="btn" type="submit">Entrar</button>
+            </form>
+
+            <p>Não tem conta? <span id="open-create-account" class="link">Criar agora</span></p>
+
+            <span class="close-modal" data-modal="login-modal">×</span>
+        </div>
+    </div>
+
+    <!-- MODAL CRIAR CONTA -->
+    <div class="modal" id="account-modal">
+        <div class="modal-content">
+            <h2>Criar Conta</h2>
+
+            <form id="create-account-form">
+                <input type="text" id="new-user" placeholder="Novo usuário" required>
+                <input type="password" id="new-password" placeholder="Nova senha" required>
+                <button class="btn" type="submit">Criar Conta</button>
+            </form>
+
+            <span class="close-modal" data-modal="account-modal">×</span>
+        </div>
+    </div>
+
+    <!-- MODAL CRIAR POST -->
+    <div class="modal" id="post-modal">
+        <div class="modal-content">
+            <h2>Novo Post</h2>
+
+            <form id="post-form">
+                <input type="text" id="post-title" placeholder="Título do post" required>
+                <textarea id="post-content" placeholder="Conteúdo do post..." required></textarea>
+                <button class="btn" type="submit">Publicar</button>
+            </form>
+
+            <span class="close-modal" data-modal="post-modal">×</span>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
+</html>

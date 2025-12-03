@@ -1,0 +1,24 @@
+{
+  "users": [
+    {
+      "user": "eddy",
+      "password": "123456"
+    }
+  ],
+  "posts": [
+    {
+      "id": 1764803423632,
+      "title": "Teste",
+      "content": "Testando blog",
+      "author": "eddy",
+      "comments": []
+    },
+    {
+      "id": 1764803623592,
+      "title": "Teste 2",
+      "content": "Testando novo post, bla bla bla",
+      "author": "eddy",
+      "comments": []
+    }
+  ]
+}

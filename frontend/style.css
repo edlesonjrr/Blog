@@ -1,0 +1,215 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+body {
+    background: #f2f2f2;
+    color: #333;
+}
+
+/* NAVBAR */
+.navbar {
+    width: 100%;
+    background: #fff;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.logo span {
+    color: #4B7BF5;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+}
+
+.nav-links a:hover {
+    color: #4B7BF5;
+}
+
+.user-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#user-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+.btn {
+    padding: 8px 16px;
+    background: #4B7BF5;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* HERO */
+.hero {
+    width: 100%;
+    height: 350px;
+    background: linear-gradient(135deg, #4B7BF5, #6A93F7);
+    color: white;
+    text-align: center;
+    padding-top: 80px;
+}
+
+.hero h1 {
+    font-size: 42px;
+    font-weight: bold;
+}
+
+.hero-btn {
+    margin-top: 25px;
+    padding: 12px 25px;
+    font-size: 18px;
+}
+
+/* POSTS */
+.section-title {
+    text-align: center;
+    font-size: 28px;
+    margin: 40px 0 20px;
+}
+
+.post-container {
+    width: 90%;
+    max-width: 900px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.post-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+}
+
+.post-card h3 {
+    color: #4B7BF5;
+    margin-bottom: 10px;
+}
+
+.post-card .author {
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+.post-card p {
+    margin-top: 10px;
+    line-height: 1.6;
+}
+
+.comment-box {
+    margin-top: 15px;
+}
+
+.comment-item {
+    margin-top: 8px;
+    background: #f8f8f8;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.comment-input {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.comment-input input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.comment-input button {
+    padding: 8px 12px;
+}
+
+/* MODAL */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    width: 350px;
+    padding: 25px;
+    border-radius: 12px;
+    position: relative;
+}
+
+.modal-content h2 {
+    margin-bottom: 20px;
+}
+
+.modal-content input,
+.modal-content textarea {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.close-modal {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 26px;
+    cursor: pointer;
+}
+
+.link {
+    color: #4B7BF5;
+    cursor: pointer;
+}
