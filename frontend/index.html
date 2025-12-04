@@ -1,91 +1,249 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog Pro — Simples & Elegante</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>BlogPro — Seu Blog</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Fonte -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-
     <!-- NAVBAR -->
-    <nav class="navbar">
-        <div class="logo">Blog<span>Pro</span></div>
+    <header class="navbar">
+        <div class="container navbar-inner">
+            <div class="brand">
+                <a class="logo" href="#">Blog<span>Pro</span></a>
+            </div>
 
-        <ul class="nav-links">
-            <li><a href="#">Início</a></li>
-            <li><a href="#posts-section">Posts</a></li>
-            <li><a href="#" id="btn-open-create-post">Criar Post</a></li>
-        </ul>
+            <nav class="nav">
+                <ul class="nav-links">
+                    <li><a href="#" data-scroll="hero">Início</a></li>
+                    <li><a href="#posts-section">Posts</a></li>
+                    <li><a href="#" id="nav-new-post">Criar Post</a></li>
+                </ul>
+            </nav>
 
-        <div class="user-area">
-            <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" id="user-icon">
-            <button id="btn-login" class="btn">Login</button>
-            <button id="logout-btn" class="btn hidden">Sair</button>
+            <div class="nav-actions">
+                <div class="search-wrap">
+                    <input id="search-input" type="search" placeholder="Pesquisar posts, autores..." />
+                    <button id="search-btn" class="btn small">Buscar</button>
+                </div>
+
+                <div class="user-actions">
+                    <img id="nav-avatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                        alt="avatar" />
+                    <button id="btn-open-login" class="btn">Fazer login</button>
+                    <button id="btn-logout" class="btn danger hidden">Sair</button>
+                </div>
+
+                <button id="toggle-theme" class="icon-btn" title="Alternar tema">🌓</button>
+            </div>
         </div>
-    </nav>
+    </header>
 
     <!-- HERO -->
-    <section class="hero">
-        <h1>Bem-vindo ao BlogPro</h1>
-        <p>Compartilhe ideias, escreva artigos e conecte-se com pessoas.</p>
-        <button class="btn hero-btn" id="scroll-posts">Ver postagens</button>
+    <section id="hero" class="hero">
+        <div class="container hero-inner">
+            <div class="hero-text">
+                <h1>Escreva. Compartilhe. Inspire.</h1>
+                <p>BlogPro é o espaço para você publicar artigos, ideias e conectar com leitores.</p>
+                <div class="hero-cta">
+                    <button class="btn large" id="hero-create-post">Escrever um post</button>
+                    <button class="btn ghost" id="hero-see-posts">Ver postagens</button>
+                </div>
+            </div>
+
+            <div class="hero-aside">
+                <div class="card mini-profile">
+                    <h3>Perfil rápido</h3>
+                    <div id="profile-quick">
+                        <img id="profile-quick-avatar" class="avatar-lg"
+                            src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="avatar">
+                        <div class="profile-info">
+                            <div id="profile-name">Convidado</div>
+                            <div class="muted">Entre para criar e comentar</div>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <button class="btn" id="quick-login">Login</button>
+                        <button class="btn ghost" id="quick-create-account">Criar conta</button>
+                    </div>
+                </div>
+
+                <div class="card categories">
+                    <h4>Categorias</h4>
+                    <div class="chips" id="category-list">
+                        <!-- dinamicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
 
-    <!-- POSTS -->
-    <section id="posts-section">
-        <h2 class="section-title">Postagens Recentes</h2>
-        <div id="post-list" class="post-container"></div>
-    </section>
+    <!-- POSTS + SIDEBAR -->
+    <main class="container main-grid">
+        <section class="content" id="posts-section">
+            <div class="toolbar">
+                <div class="left">
+                    <select id="filter-category">
+                        <option value="">Todas as categorias</option>
+                    </select>
+                    <select id="sort-posts">
+                        <option value="newest">Mais recentes</option>
+                        <option value="oldest">Mais antigas</option>
+                        <option value="popular">Mais curtidas</option>
+                    </select>
+                </div>
+                <div class="right">
+                    <span id="posts-count" class="muted">0 posts</span>
+                </div>
+            </div>
 
-    <!-- MODAL LOGIN -->
-    <div class="modal" id="login-modal">
-        <div class="modal-content">
-            <h2>Entrar</h2>
+            <div id="posts-list" class="posts-list">
+                <!-- cards de posts serão injetados aqui -->
+            </div>
 
-            <form id="login-form">
-                <input type="text" id="login-user" placeholder="Usuário" required>
-                <input type="password" id="login-password" placeholder="Senha" required>
-                <button class="btn" type="submit">Entrar</button>
+            <div class="pagination" id="pagination">
+                <!-- paginação dinâmica -->
+            </div>
+        </section>
+
+        <aside class="sidebar">
+            <div class="card about">
+                <h3>Sobre o BlogPro</h3>
+                <p>Projeto educacional — um blog simples com funcionalidades reais: posts, comentários, curtidas e
+                    categorias.</p>
+            </div>
+
+            <div class="card top-authors">
+                <h4>Autores em destaque</h4>
+                <ul id="top-authors">
+                    <!-- gerado dinamicamente -->
+                </ul>
+            </div>
+
+            <div class="card latest-comments">
+                <h4>Últimos comentários</h4>
+                <div id="latest-comments">
+                    <!-- gerado dinamicamente -->
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div>© <span id="footer-author">Feitosa</span> — Desenvolvido por Eddy</div>
+        </div>
+    </footer>
+
+    <!-- MODAIS -->
+
+    <!-- Login Modal -->
+    <div class="modal" id="modal-login" aria-hidden="true">
+        <div class="modal-card">
+            <button class="close" data-modal="modal-login">×</button>
+            <h3>Entrar</h3>
+            <form id="form-login">
+                <input id="login-user" type="text" placeholder="Usuário" required />
+                <input id="login-password" type="password" placeholder="Senha" required />
+                <div class="row">
+                    <button class="btn" type="submit">Entrar</button>
+                    <button class="btn ghost" id="open-create-from-login" type="button">Criar conta</button>
+                </div>
+                <div class="msg" id="login-msg"></div>
             </form>
-
-            <p>Não tem conta? <span id="open-create-account" class="link">Criar agora</span></p>
-
-            <span class="close-modal" data-modal="login-modal">×</span>
         </div>
     </div>
 
-    <!-- MODAL CRIAR CONTA -->
-    <div class="modal" id="account-modal">
-        <div class="modal-content">
-            <h2>Criar Conta</h2>
-
-            <form id="create-account-form">
-                <input type="text" id="new-user" placeholder="Novo usuário" required>
-                <input type="password" id="new-password" placeholder="Nova senha" required>
-                <button class="btn" type="submit">Criar Conta</button>
+    <!-- Create Account Modal -->
+    <div class="modal" id="modal-create" aria-hidden="true">
+        <div class="modal-card">
+            <button class="close" data-modal="modal-create">×</button>
+            <h3>Criar Conta</h3>
+            <form id="form-create">
+                <input id="create-user" type="text" placeholder="Usuário" required />
+                <input id="create-password" type="password" placeholder="Senha" required />
+                <input id="create-avatar" type="text" placeholder="URL do avatar (opcional)" />
+                <div class="row">
+                    <button class="btn" type="submit">Criar</button>
+                </div>
+                <div class="msg" id="create-msg"></div>
             </form>
-
-            <span class="close-modal" data-modal="account-modal">×</span>
         </div>
     </div>
 
-    <!-- MODAL CRIAR POST -->
-    <div class="modal" id="post-modal">
-        <div class="modal-content">
-            <h2>Novo Post</h2>
-
-            <form id="post-form">
-                <input type="text" id="post-title" placeholder="Título do post" required>
-                <textarea id="post-content" placeholder="Conteúdo do post..." required></textarea>
-                <button class="btn" type="submit">Publicar</button>
+    <!-- Create/Edit Post Modal -->
+    <div class="modal" id="modal-post" aria-hidden="true">
+        <div class="modal-card">
+            <button class="close" data-modal="modal-post">×</button>
+            <h3 id="post-modal-title">Novo Post</h3>
+            <form id="form-post">
+                <input id="post-title" type="text" placeholder="Título" required />
+                <input id="post-category" type="text" placeholder="Categoria (ex: Tecnologia)" />
+                <textarea id="post-body" rows="8" placeholder="Escreva seu post..." required></textarea>
+                <div class="row">
+                    <button class="btn" type="submit">Publicar</button>
+                    <button class="btn ghost" id="post-cancel" type="button">Cancelar</button>
+                </div>
+                <div class="msg" id="post-msg"></div>
             </form>
-
-            <span class="close-modal" data-modal="post-modal">×</span>
         </div>
     </div>
 
+    <!-- Confirm Delete Modal -->
+    <div class="modal" id="modal-confirm" aria-hidden="true">
+        <div class="modal-card">
+            <button class="close" data-modal="modal-confirm">×</button>
+            <h3>Confirmar ação</h3>
+            <p id="confirm-text">Tem certeza?</p>
+            <div class="row">
+                <button class="btn danger" id="confirm-yes">Sim</button>
+                <button class="btn ghost" id="confirm-no">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template elements (invisible) -->
+    <template id="template-post">
+        <article class="post-card">
+            <header class="post-header">
+                <h4 class="post-title"></h4>
+                <div class="post-meta">
+                    <img class="post-avatar small" src="" alt="avatar" />
+                    <div>
+                        <div class="post-author"></div>
+                        <div class="muted post-date"></div>
+                    </div>
+                </div>
+            </header>
+            <div class="post-body"></div>
+            <div class="post-controls">
+                <div class="left-controls">
+                    <button class="btn like-btn">♥ <span class="like-count">0</span></button>
+                    <button class="btn comment-toggle">Comentar</button>
+                </div>
+                <div class="right-controls">
+                    <button class="btn ghost edit-btn">Editar</button>
+                    <button class="btn danger delete-btn">Excluir</button>
+                </div>
+            </div>
+            <div class="comments-area hidden">
+                <div class="comments-list"></div>
+                <div class="comment-input">
+                    <input class="comment-field" type="text" placeholder="Escrever comentário..." />
+                    <button class="btn comment-send">Enviar</button>
+                </div>
+            </div>
+        </article>
+    </template>
+
+    <!-- App script -->
     <script src="app.js"></script>
-
 </body>
+
 </html>

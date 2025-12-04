@@ -1,379 +1,545 @@
-// frontend/app.js (refatorado, integrado com o novo design)
-// Compatível com o backend em http://localhost:3000
-// Endpoints usados:
-//  GET  /posts
-//  POST /posts            { title, content, author }
-//  POST /comments         { postId, comment, author }
-//  POST /create-account   { user, password }
-//  POST /login            { user, password }
+// app.js — Refatorado para o seu index.html
+// Compatível com:
+// IDs usados no seu HTML: search-input, search-btn, nav-avatar, btn-open-login, btn-logout,
+// hero-create-post, hero-see-posts, quick-login, quick-create-account, open-create-from-login,
+// nav-new-post, modal-login, modal-create, modal-post, modal-confirm,
+// form-login, form-create, form-post, post-title, post-body, post-category,
+// posts-list, posts-count, filter-category, sort-posts, category-list, top-authors, latest-comments,
+// template-post, confirm-yes, confirm-no, post-cancel, toggle-theme
 
-const API = 'http://localhost:3000';
+const API = "http://localhost:3000";
 
-// ====== DOM ======
-const btnLogin = document.getElementById('btn-login');
-const btnLogout = document.getElementById('logout-btn');
-const userIcon = document.getElementById('user-icon');
+// helpers
+const qs = (s) => document.querySelector(s);
+const qsa = (s) => Array.from(document.querySelectorAll(s));
 
-const loginModal = document.getElementById('login-modal');
-const accountModal = document.getElementById('account-modal');
-const postModal = document.getElementById('post-modal');
+const escapeHtml = (t = "") =>
+  String(t).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c])
+  );
 
-const loginForm = document.getElementById('login-form');
-const createAccountForm = document.getElementById('create-account-form');
-const postForm = document.getElementById('post-form');
-
-const openCreateAccount = document.getElementById('open-create-account');
-const btnOpenCreatePost = document.getElementById('btn-open-create-post');
-const scrollPostsBtn = document.getElementById('scroll-posts');
-
-const postList = document.getElementById('post-list');
-
-// Inputs
-const loginUser = document.getElementById('login-user');
-const loginPassword = document.getElementById('login-password');
-const newUser = document.getElementById('new-user');
-const newPassword = document.getElementById('new-password');
-const postTitle = document.getElementById('post-title');
-const postContent = document.getElementById('post-content');
-
-// ====== State ======
-let currentUser = JSON.parse(localStorage.getItem('blog_user') || 'null');
-
-// ====== Utils ======
-function qs(sel, parent = document) { return parent.querySelector(sel); }
-function qsa(sel, parent = document) { return Array.from(parent.querySelectorAll(sel)); }
-
-function escapeHtml(text){
-  if(text === null || text === undefined) return '';
-  return String(text)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
-}
-
-function showModal(modalEl){
-  modalEl.style.display = 'flex';
-  // focus first input if exists
-  const firstInput = modalEl.querySelector('input, textarea, button');
-  if(firstInput) firstInput.focus();
-}
-function closeModal(modalEl){
-  modalEl.style.display = 'none';
-}
-function closeAllModals(){
-  [loginModal, accountModal, postModal].forEach(m => closeModal(m));
-}
-
-// simple inline message (temporary)
-function flash(msg, type = 'info', timeout = 2200){
-  const el = document.createElement('div');
+function flash(msg, type = "info", timeout = 2200) {
+  const el = document.createElement("div");
+  el.className = `flash flash-${type}`;
   el.textContent = msg;
-  el.style.position = 'fixed';
-  el.style.right = '18px';
-  el.style.bottom = '18px';
-  el.style.padding = '10px 14px';
-  el.style.borderRadius = '10px';
-  el.style.zIndex = 9999;
-  el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
-  if(type === 'error'){ el.style.background = '#ffeded'; el.style.color = '#b22'; }
-  else if(type === 'success'){ el.style.background = '#e6ffef'; el.style.color = '#117a3a'; }
-  else { el.style.background = '#fff'; el.style.color = '#222'; }
+  Object.assign(el.style, {
+    position: "fixed",
+    right: "18px",
+    bottom: "18px",
+    padding: "10px 14px",
+    borderRadius: "8px",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
+    zIndex: 9999,
+    background: type === "error" ? "#ffd6d6" : type === "success" ? "#e6ffef" : "#fff",
+    color: type === "error" ? "#900" : type === "success" ? "#064" : "#222",
+    transition: 'opacity 0.3s, transform 0.3s',
+    transform: 'translateY(100%)',
+    opacity: 0,
+  });
+
+  // Adiciona e mostra com um pequeno atraso
   document.body.appendChild(el);
-  setTimeout(()=> el.remove(), timeout);
+  setTimeout(() => {
+    el.style.transform = 'translateY(0)';
+    el.style.opacity = 1;
+  }, 10);
+
+  setTimeout(() => {
+    el.style.transform = 'translateY(100%)';
+    el.style.opacity = 0;
+    setTimeout(() => el.remove(), 300); // Remove depois da transição
+  }, timeout);
 }
 
-// ====== UI updates ======
-function updateUserUI(){
-  if(currentUser && currentUser.user){
-    btnLogin.classList.add('hidden');
-    btnLogout.classList.remove('hidden');
-    userIcon.title = currentUser.user;
-    userIcon.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.user)}&background=4B7BF5&color=fff&rounded=true`;
-  } else {
-    btnLogin.classList.remove('hidden');
-    btnLogout.classList.add('hidden');
-    userIcon.src = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-    userIcon.title = 'Convidado';
+// API helper
+async function api(path, method = "GET", body = null) {
+  try {
+    const res = await fetch(API + path, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : null
+    });
+    // Verifica se a resposta não é OK (status 4xx ou 5xx)
+    if (!res.ok) {
+      let errorData;
+      try {
+        errorData = await res.json();
+      } catch (e) {
+        errorData = { error: `Erro no servidor (Status: ${res.status})` };
+      }
+      return errorData;
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("API error:", err);
+    flash("Erro de conexão com o servidor API.", "error");
+    throw err;
   }
 }
 
-function setCurrentUser(userObj){
-  currentUser = userObj;
-  if(userObj) localStorage.setItem('blog_user', JSON.stringify(userObj));
-  else localStorage.removeItem('blog_user');
+// state
+let currentUser = JSON.parse(localStorage.getItem("blog_user") || "null");
+let posts = [];
+let editingPostId = null;
+
+// cached elements (matching your HTML)
+const navAvatar = qs("#nav-avatar");
+const btnOpenLogin = qs("#btn-open-login");
+const btnLogout = qs("#btn-logout");
+const searchInput = qs("#search-input");
+const searchBtn = qs("#search-btn"); // Busca o botão
+const heroCreate = qs("#hero-create-post");
+const heroSee = qs("#hero-see-posts");
+
+const quickLogin = qs("#quick-login");
+const quickCreate = qs("#quick-create-account");
+const openCreateFromLogin = qs("#open-create-from-login");
+const navNewPost = qs("#nav-new-post");
+const toggleThemeBtn = qs("#toggle-theme");
+
+const loginForm = qs("#form-login");
+const createForm = qs("#form-create");
+const postForm = qs("#form-post");
+const postCancelBtn = qs("#post-cancel");
+
+const postsList = qs("#posts-list");
+const postsCount = qs("#posts-count");
+
+const filterCategory = qs("#filter-category");
+const sortPosts = qs("#sort-posts");
+
+const categoriesBox = qs("#category-list");
+const topAuthorsBox = qs("#top-authors");
+const latestCommentsBox = qs("#latest-comments");
+
+const templatePost = qs("#template-post");
+
+const modalLogin = qs("#modal-login");
+const modalCreate = qs("#modal-create");
+const modalPost = qs("#modal-post");
+const modalConfirm = qs("#modal-confirm");
+const confirmYes = qs("#confirm-yes");
+const confirmNo = qs("#confirm-no");
+const postModalTitle = qs("#post-modal-title");
+
+// UI update
+function updateUserUI() {
+  const userLoggedIn = currentUser && currentUser.user;
+
+  // Toggle visibility of login/logout buttons
+  btnOpenLogin?.classList.toggle("hidden", !!userLoggedIn);
+  btnLogout?.classList.toggle("hidden", !userLoggedIn);
+
+  // Avatar setup
+  const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  let avatarUrl = defaultAvatar;
+  let profileDisplayName = "Convidado";
+
+  if (userLoggedIn) {
+    profileDisplayName = currentUser.user;
+    avatarUrl = currentUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.user)}&background=4B7BF5&color=fff&rounded=true`;
+  }
+
+  if (navAvatar) navAvatar.src = avatarUrl;
+
+  const profileName = qs("#profile-name");
+  const profileQuickAvatar = qs("#profile-quick-avatar");
+
+  if (profileName) profileName.textContent = profileDisplayName;
+  if (profileQuickAvatar) profileQuickAvatar.src = avatarUrl;
+}
+
+function setCurrentUser(obj) {
+  currentUser = obj;
+  if (obj) localStorage.setItem("blog_user", JSON.stringify(obj));
+  else localStorage.removeItem("blog_user");
   updateUserUI();
 }
 
-// ====== Modal open/close handlers ======
-btnLogin.addEventListener('click', () => showModal(loginModal));
-openCreateAccount.addEventListener('click', () => { closeModal(loginModal); showModal(accountModal); });
-qsa('.close-modal').forEach(btn => btn.addEventListener('click', (e) => {
-  const id = e.target.dataset.modal;
-  if(id){
-    const el = document.getElementById(id);
-    if(el) closeModal(el);
-  } else {
-    // fallback: close parent modal
-    let parent = e.target.closest('.modal');
-    if(parent) closeModal(parent);
+// modal helpers (use aria-hidden per seu HTML)
+function showModal(id) {
+  const el = qs(`#${id}`);
+  if (el) el.setAttribute("aria-hidden", "false");
+}
+function hideModal(id) {
+  const el = qs(`#${id}`);
+  if (el) el.setAttribute("aria-hidden", "true");
+}
+document.addEventListener("click", (e) => {
+  const modal = e.target.closest(".modal");
+  // Se clicou no modal e o target é o próprio modal (clique fora do modal-card)
+  if (modal && e.target === modal) {
+    modal.setAttribute("aria-hidden", "true");
   }
-}));
+});
 
-// click outside modal content closes it
-[loginModal, accountModal, postModal].forEach(modal => {
-  modal.addEventListener('click', (e) => {
-    if(e.target === modal) closeModal(modal);
+// ---------- ACTIONS (Forms) ----------
+
+// login
+if (loginForm) {
+  loginForm.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    try {
+      const user = qs("#login-user")?.value.trim();
+      const password = qs("#login-password")?.value.trim();
+      if (!user || !password) return flash("Preencha todos os campos!", "error");
+      const res = await api("/login", "POST", { user, password });
+      if (res?.error) return flash(res.error, "error");
+      setCurrentUser(res);
+      flash("Login realizado!", "success");
+      hideModal("modal-login");
+      await loadPosts();
+    } catch (err) {
+      console.error(err);
+    }
   });
-});
-
-// open post modal
-btnOpenCreatePost.addEventListener('click', () => {
-  if(!currentUser){ showModal(loginModal); flash('Faça login para criar um post', 'info'); return; }
-  showModal(postModal);
-});
-
-// scroll to posts
-if(scrollPostsBtn) scrollPostsBtn.addEventListener('click', () => {
-  const el = document.getElementById('posts-section') || postList;
-  if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-});
-
-// logout
-btnLogout.addEventListener('click', () => {
-  setCurrentUser(null);
-  flash('Desconectado', 'success');
-});
-
-// ====== API helpers ======
-async function apiGet(path){
-  const res = await fetch(`${API}${path}`);
-  const json = await res.json();
-  return json;
 }
-async function apiPost(path, body){
-  const res = await fetch(`${API}${path}`, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(body)
+
+// create account
+if (createForm) {
+  createForm.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    try {
+      const user = qs("#create-user")?.value.trim();
+      const password = qs("#create-password")?.value.trim();
+      const avatar = qs("#create-avatar")?.value.trim() || "";
+      if (!user || !password) return flash("Preencha os campos!", "error");
+      const res = await api("/create-account", "POST", { user, password, avatar });
+      if (res?.error) return flash(res.error, "error");
+      setCurrentUser(res);
+      flash("Conta criada com sucesso!", "success");
+      hideModal("modal-create");
+      await loadPosts();
+    } catch (err) {
+      console.error(err);
+    }
   });
-  const json = await res.json();
-  return json;
 }
 
-// ====== Forms handling ======
-// Login
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const user = loginUser.value.trim();
-  const password = loginPassword.value.trim();
-  if(!user || !password){ flash('Preencha usuário e senha', 'error'); return; }
+// create / edit post
+if (postForm) {
+  postForm.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    try {
+      if (!currentUser) return flash("Você precisa estar logado!", "error");
+      const title = qs("#post-title")?.value.trim() || "";
+      const body = qs("#post-body")?.value.trim() || "";
+      const category = qs("#post-category")?.value.trim() || "Geral";
+      if (!title || !body) return flash("Título e conteúdo são obrigatórios!", "error");
 
-  try{
-    const res = await apiPost('/login', { user, password });
-    if(res && res.error){ flash(res.error, 'error'); return; }
-    if(res && res.success){
-      setCurrentUser({ user });
-      closeModal(loginModal);
-      loginForm.reset();
-      flash('Login realizado com sucesso', 'success');
-      loadPosts(); // optional refresh
-    } else {
-      flash('Resposta inesperada do servidor', 'error');
-    }
-  } catch(err){
-    console.error(err);
-    flash('Erro ao conectar com o servidor', 'error');
-  }
-});
+      const payload = { title, body, category, author: currentUser.user };
+      const method = editingPostId ? "PUT" : "POST";
+      const path = editingPostId ? `/posts/${editingPostId}` : "/posts";
 
-// Create account
-createAccountForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const user = newUser.value.trim();
-  const password = newPassword.value.trim();
-  if(!user || !password){ flash('Preencha os campos', 'error'); return; }
+      const res = await api(path, method, payload);
+      if (res?.error) return flash(res.error, "error");
 
-  try{
-    const res = await apiPost('/create-account', { user, password });
-    if(res && res.error){ flash(res.error, 'error'); return; }
-    if(res && res.success){
-      setCurrentUser({ user });
-      closeModal(accountModal);
-      createAccountForm.reset();
-      flash('Conta criada e logado!', 'success');
-      loadPosts();
-    } else {
-      flash('Resposta inesperada do servidor', 'error');
-    }
-  } catch(err){
-    console.error(err);
-    flash('Erro ao conectar com o servidor', 'error');
-  }
-});
-
-// Create post
-postForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if(!currentUser){ flash('Faça login para publicar', 'error'); return; }
-  const title = postTitle.value.trim();
-  const content = postContent.value.trim();
-  if(!title || !content){ flash('Título e conteúdo são obrigatórios', 'error'); return; }
-
-  try{
-    const res = await apiPost('/posts', { title, content, author: currentUser.user });
-    if(res && res.error){ flash(res.error, 'error'); return; }
-    if(res && res.success){
+      flash(editingPostId ? "Post atualizado!" : "Post criado!", "success");
+      editingPostId = null;
       postForm.reset();
-      closeModal(postModal);
-      flash('Post publicado!', 'success');
-      loadPosts();
-    } else if(res && res.post){
-      // older server variant returned post directly
-      postForm.reset();
-      closeModal(postModal);
-      flash('Post publicado!', 'success');
-      loadPosts();
-    } else {
-      flash('Resposta inesperada do servidor', 'error');
+      hideModal("modal-post");
+      await loadPosts();
+    } catch (err) {
+      console.error(err);
     }
-  } catch(err){
-    console.error(err);
-    flash('Erro ao conectar com o servidor', 'error');
-  }
-});
+  });
 
-// ====== Comments ======
-async function submitComment(postId, inputEl){
-  if(!currentUser){ showModal(loginModal); flash('Faça login para comentar', 'info'); return; }
-  const commentText = inputEl.value.trim();
-  if(!commentText) return;
-  try{
-    const res = await apiPost('/comments', { postId, comment: commentText, author: currentUser.user });
-    if(res && res.error){ flash(res.error, 'error'); return; }
-    if(res && res.success){
-      inputEl.value = '';
-      loadPosts();
-      flash('Comentário enviado', 'success');
-    } else {
-      // some server variants return success in other shapes
-      inputEl.value = '';
-      loadPosts();
-      flash('Comentário enviado', 'success');
-    }
-  } catch(err){
-    console.error(err);
-    flash('Erro ao enviar comentário', 'error');
-  }
+  postCancelBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    editingPostId = null;
+    postForm.reset();
+    hideModal("modal-post");
+  });
 }
 
-// ====== Rendering posts ======
-function renderPosts(posts){
-  postList.innerHTML = '';
-  if(!Array.isArray(posts) || posts.length === 0){
-    postList.innerHTML = `<p style="text-align:center;color:#666">Sem postagens ainda — seja o primeiro a publicar!</p>`;
+// render posts from data
+function renderPosts(list = []) {
+  postsList.innerHTML = "";
+  postsCount.textContent = `${list.length} posts`;
+
+  if (!list.length) {
+    postsList.innerHTML = `<p class="empty">Nenhum post encontrado.</p>`;
     return;
   }
 
-  posts.slice().reverse().forEach(post => {
-    // structure: post.id, post.title, post.content, post.author, post.comments (array)
-    const card = document.createElement('article');
-    card.className = 'post-card';
+  list.forEach((post) => {
+    // clone template
+    const tpl = templatePost?.content.cloneNode(true);
+    if (!tpl) return;
 
-    const title = document.createElement('h3');
-    title.innerHTML = escapeHtml(post.title);
-    card.appendChild(title);
+    const titleEl = tpl.querySelector(".post-title");
+    const avatarEl = tpl.querySelector(".post-avatar");
+    const authorEl = tpl.querySelector(".post-author");
+    const dateEl = tpl.querySelector(".post-date");
+    const bodyEl = tpl.querySelector(".post-body");
+    const likeCountEl = tpl.querySelector(".like-count");
+    const likeBtn = tpl.querySelector(".like-btn"); // Elemento do botão
+    const commentToggle = tpl.querySelector(".comment-toggle");
+    const commentSend = tpl.querySelector(".comment-send");
+    const commentField = tpl.querySelector(".comment-field");
+    const commentsListEl = tpl.querySelector(".comments-list");
+    const editBtn = tpl.querySelector(".edit-btn");
+    const delBtn = tpl.querySelector(".delete-btn");
+    const commentsArea = tpl.querySelector(".comments-area");
 
-    const meta = document.createElement('div');
-    meta.className = 'author';
-    const dateText = post.createdAt || post.createdAtISO || post.createdAt || '';
-    meta.innerHTML = `por <strong>${escapeHtml(post.author || post.author || 'Anon')}</strong> ${dateText ? ' • ' + escapeHtml(dateText) : ''}`;
-    card.appendChild(meta);
+    titleEl && (titleEl.textContent = escapeHtml(post.title));
+    avatarEl && (avatarEl.src = post.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author)}&background=999&color=fff&rounded=true`);
+    authorEl && (authorEl.textContent = escapeHtml(post.author));
+    dateEl && (dateEl.textContent = new Date(Number(post.id) || Date.now()).toLocaleString());
+    bodyEl && (bodyEl.textContent = escapeHtml(post.body || post.content || ""));
+    likeCountEl && (likeCountEl.textContent = post.likes || 0);
 
-    const content = document.createElement('p');
-    content.innerHTML = escapeHtml(post.content || post.conteudo || '');
-    card.appendChild(content);
-
-    // comments
-    const commentBox = document.createElement('div');
-    commentBox.className = 'comment-box';
-
-    const commentsArr = post.comments || post.comments || [];
-    if(Array.isArray(commentsArr) && commentsArr.length){
-      commentsArr.forEach(c => {
-        const item = document.createElement('div');
-        item.className = 'comment-item';
-        item.innerHTML = `<strong>${escapeHtml(c.author || c.usuario || 'Anon')}:</strong> ${escapeHtml(c.comment || c.conteudo || '')}`;
-        commentBox.appendChild(item);
-      });
-    } else {
-      // no comments placeholder (optional)
-      // commentBox.innerHTML += `<div style="color:#888;font-size:14px">Seja o primeiro a comentar</div>`;
+    // like button - ATENÇÃO: Verifique se post.id existe e se a API está respondendo a /like
+    if (likeBtn) {
+      likeBtn.onclick = () => likePost(post.id);
     }
 
-    // comment input
-    const commentInputWrap = document.createElement('div');
-    commentInputWrap.className = 'comment-input';
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = 'Escreva um comentário...';
-    input.addEventListener('keydown', (e) => {
-      if(e.key === 'Enter'){ submitComment(post.id, input); }
-    });
 
-    const btn = document.createElement('button');
-    btn.className = 'btn';
-    btn.textContent = 'Comentar';
-    btn.addEventListener('click', () => submitComment(post.id, input));
+    // comments toggle
+    if (commentToggle && commentsArea) commentToggle.onclick = () => commentsArea.classList.toggle("hidden");
 
-    commentInputWrap.appendChild(input);
-    commentInputWrap.appendChild(btn);
+    // render comments
+    if (commentsListEl) {
+      commentsListEl.innerHTML = (post.comments || []).map(c => `<div class="comment-item"><b>${escapeHtml(c.author)}:</b> ${escapeHtml(c.text || c.comment || '')}</div>`).join("");
+    }
 
-    card.appendChild(commentBox);
-    card.appendChild(commentInputWrap);
+    // send comment
+    if (commentSend && commentField) commentSend.onclick = () => submitComment(post.id, commentField);
 
-    postList.appendChild(card);
+    // edit/delete only if author
+    const canEdit = currentUser && currentUser.user === post.author;
+    if (!canEdit) {
+      editBtn?.remove();
+      delBtn?.remove();
+    } else {
+      editBtn && (editBtn.onclick = () => openEditPost(post));
+      delBtn && (delBtn.onclick = () => confirmDelete(post.id));
+    }
+
+    postsList.appendChild(tpl);
   });
 }
 
-// ====== Load posts from server ======
-let loadingPosts = false;
-async function loadPosts(){
-  if(loadingPosts) return;
-  loadingPosts = true;
-  try{
-    const res = await apiGet('/posts');
-    // backend returns array or object: handle both
-    let posts = [];
-    if(Array.isArray(res)) posts = res;
-    else if(res && Array.isArray(res.posts)) posts = res.posts;
-    else if(res && res.post) posts = [res.post]; // unlikely
-    else posts = [];
+// open edit
+function openEditPost(post) {
+  editingPostId = post.id;
+  qs("#post-title").value = post.title || "";
+  qs("#post-body").value = post.body || post.content || "";
+  qs("#post-category").value = post.category || "Geral";
+  if (postModalTitle) postModalTitle.textContent = "Editar Post";
+  showModal("modal-post");
+}
 
-    // normalize posts: ensure id, title, content, author, comments
-    posts = posts.map(p => ({
-      id: p.id ?? p.postId ?? p._id ?? (p.title ? (p.title + Math.random()).slice(0,12) : Date.now()),
-      title: p.title ?? p.titulo ?? '',
-      content: p.content ?? p.conteudo ?? '',
-      author: p.author ?? p.autor ?? p.author ?? p.usuario ?? 'Anon',
-      comments: Array.isArray(p.comments) ? p.comments.map(c => ({
-        author: c.author ?? c.usuario ?? c.author ?? 'Anon',
-        comment: c.comment ?? c.conteudo ?? c.comment ?? ''
-      })) : []
-    }));
+// confirm delete
+function confirmDelete(id) {
+  qs("#confirm-text").textContent = "Deseja realmente excluir este post?";
+  showModal("modal-confirm");
 
-    renderPosts(posts);
-  } catch(err){
+  // Removendo listeners existentes para evitar múltiplos disparos
+  confirmYes?.removeEventListener("click", confirmYes.currentListener, { once: true });
+  confirmNo?.removeEventListener("click", confirmNo.currentListener, { once: true });
+
+  const yes = async () => {
+    try {
+      await api(`/posts/${id}`, "DELETE");
+      flash("Post excluído!", "success");
+      hideModal("modal-confirm");
+      await loadPosts();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const no = () => hideModal("modal-confirm");
+
+  // Adiciona e salva a referência do listener para poder remover
+  confirmYes.currentListener = yes;
+  confirmNo.currentListener = no;
+
+  confirmYes?.addEventListener("click", yes, { once: true });
+  confirmNo?.addEventListener("click", no, { once: true });
+}
+
+// like
+async function likePost(id) {
+  if (!currentUser) return flash("Faça login para curtir!", "error");
+
+  // Log de Debug: Verifique o console do navegador
+  console.log(`[LIKE] Tentando curtir post ID: ${id} pelo usuário: ${currentUser.user}`);
+
+  try {
+    // CHAVE: POST para /like
+    const res = await api("/like", "POST", { postId: id, user: currentUser.user });
+    if (res?.error) {
+      console.error("[LIKE ERROR]", res.error);
+      return flash(res.error, "error");
+    }
+
+    flash("Curtida registrada!", "success", 1500);
+    await loadPosts(); // Recarrega os posts para atualizar a contagem
+  } catch (err) {
     console.error(err);
-    postList.innerHTML = `<p style="color:#b22;text-align:center">Erro ao carregar posts.</p>`;
-  } finally {
-    loadingPosts = false;
+    flash("Erro ao conectar com a API de like.", "error");
   }
 }
 
-// ====== Init ======
-(function init(){
-  updateUserUI();
-  loadPosts();
-})();
+// submit comment
+async function submitComment(id, inputEl) {
+  if (!currentUser) return flash("Faça login!", "error");
+  const text = (inputEl?.value || "").trim();
+  if (!text) return;
+  try {
+    const res = await api("/comments", "POST", { postId: id, text, author: currentUser.user });
+    if (res?.error) return flash(res.error, "error");
+    inputEl.value = "";
+    await loadPosts();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// sidebars
+function updateSidebars() {
+  const cats = Array.from(new Set(posts.map(p => p.category || "Geral")));
+
+  // Categorias
+  if (categoriesBox) {
+    categoriesBox.innerHTML = cats.map(c => `<button class="chip" data-category="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join("");
+    // Adiciona listener nos chips da lateral
+    categoriesBox.querySelectorAll(".chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        filterCategory.value = chip.dataset.category;
+        applyFilters();
+      });
+    });
+  }
+
+  if (filterCategory) {
+    const currentFilter = filterCategory.value;
+    filterCategory.innerHTML = `<option value="">Todas as categorias</option>` + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    // Mantém o filtro selecionado após a atualização
+    filterCategory.value = currentFilter;
+  }
+
+  // top authors
+  const ranking = posts.reduce((acc, p) => { acc[p.author] = (acc[p.author] || 0) + 1; return acc; }, {});
+  if (topAuthorsBox) topAuthorsBox.innerHTML = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([a, c]) => `<li>${escapeHtml(a)} — <span class="muted">${c} posts</span></li>`).join("");
+
+  // latest comments
+  let allComments = [];
+  posts.forEach(p => (p.comments || []).forEach(c => allComments.push({ post: p.title, ...c })));
+  if (latestCommentsBox) {
+    // Reverter a ordem de posts/comentários para pegar os mais recentes
+    const latest = posts.slice().reverse().flatMap(p =>
+      (p.comments || []).slice().reverse().map(c => ({ postTitle: p.title, ...c }))
+    ).slice(0, 6);
+
+    latestCommentsBox.innerHTML = latest.map(c =>
+      `<div class="comment-item small"><b>${escapeHtml(c.author)}:</b> ${escapeHtml(c.text || c.comment || '')} <span class="muted">— ${escapeHtml(c.postTitle)}</span></div>`
+    ).join("");
+  }
+}
+
+// filters/search/sort
+function applyFilters() {
+  let list = [...posts];
+  const s = (searchInput?.value || "").toLowerCase();
+  const cat = filterCategory?.value || "";
+  const sort = sortPosts?.value || "newest";
+
+  if (cat) list = list.filter(p => (p.category || "").toLowerCase() === cat.toLowerCase());
+  if (s) list = list.filter(p => [p.title, p.body || p.content, p.author].some(f => (f || "").toLowerCase().includes(s)));
+
+  // Sorting logic
+  if (sort === "newest") list.sort((a, b) => (b.id || 0) - (a.id || 0));
+  if (sort === "oldest") list.sort((a, b) => (a.id || 0) - (b.id || 0));
+  if (sort === "popular") list.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+
+  renderPosts(list);
+}
+
+// load posts
+async function loadPosts() {
+  try {
+    const res = await api("/posts");
+    posts = Array.isArray(res) ? res.map(p => ({
+      ...p,
+      id: Number(p.id) || Date.now(),
+      category: p.category || "Geral",
+      comments: p.comments || [],
+      likes: p.likes || 0
+    })) : [];
+
+    // Garantir que todos os IDs sejam únicos para ordenação correta
+    posts.forEach(p => {
+      if (!p.id) p.id = Date.now() + Math.random();
+    });
+
+    applyFilters();
+    updateSidebars();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// buttons / nav wiring
+btnOpenLogin?.addEventListener("click", () => showModal("modal-login"));
+quickLogin?.addEventListener("click", () => showModal("modal-login"));
+quickCreate?.addEventListener("click", () => showModal("modal-create"));
+openCreateFromLogin?.addEventListener("click", (e) => {
+  e.preventDefault(); // Evita o submit do form de login
+  hideModal("modal-login");
+  showModal("modal-create");
+});
+
+navNewPost?.addEventListener("click", (e) => {
+  e.preventDefault();
+  if (!currentUser) return flash("Faça login primeiro!", "error");
+  editingPostId = null;
+  if (postModalTitle) postModalTitle.textContent = "Novo Post";
+  postForm.reset();
+  showModal("modal-post");
+});
+heroCreate?.addEventListener("click", () => {
+  if (!currentUser) return flash("Faça login!", "error");
+  editingPostId = null;
+  if (postModalTitle) postModalTitle.textContent = "Novo Post";
+  postForm.reset();
+  showModal("modal-post");
+});
+heroSee?.addEventListener("click", () => {
+  document.getElementById("posts-section")?.scrollIntoView({ behavior: "smooth" });
+});
+
+btnLogout?.addEventListener("click", () => { setCurrentUser(null); flash("Você saiu!", "info"); });
+
+// search button fix
+searchBtn?.addEventListener("click", (e) => {
+  e.preventDefault();
+  applyFilters();
+});
+searchInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") applyFilters(); });
+
+// close modal buttons
+qsa(".close").forEach(b => b.addEventListener("click", (ev) => {
+  const id = ev.currentTarget.dataset.modal;
+  if (id) hideModal(id);
+}));
+
+// theme toggle (simple)
+toggleThemeBtn?.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+  localStorage.setItem("blog_theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+});
+
+// initialize theme from localStorage
+if (localStorage.getItem("blog_theme") === "dark") document.body.classList.add("dark-mode");
+
+// search/filter listeners
+filterCategory?.addEventListener("change", applyFilters);
+sortPosts?.addEventListener("change", applyFilters);
+
+// init
+updateUserUI();
+loadPosts();
+flash("BlogPro carregado!", "success");
