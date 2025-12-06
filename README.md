@@ -10,6 +10,11 @@ Um blog completo criado do zero, com **frontend moderno**, **backend em Node.js 
 - ✔ Salvamento em `data.json`  
 - ✔ Estilo profissional e responsivo  
 
+## Screenshots
+
+![App Screenshot](image/tela1.png)
+
+
 ---
 
 ## 🚀 Tecnologias Usadas
