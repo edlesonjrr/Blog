@@ -54,6 +54,7 @@ function flash(msg, type = "info", timeout = 2200) {
 // API helper
 async function api(path, method = "GET", body = null) {
   try {
+    console.log(API + path)
     const res = await fetch(API + path, {
       method,
       headers: { "Content-Type": "application/json" },
