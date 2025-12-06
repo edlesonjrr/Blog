@@ -49,3 +49,31 @@ Uma breve descrição sobre o que esse projeto faz e para quem ele é
 ├── style.css
 └── app.js
 ```
+## ▶️ Como Rodar (abra o terminal)
+### 1. Instale as dependências
+No diretório **backend**:
+
+```bash
+ npm install
+```
+
+### 1.1 Se não existir package.json, inicialize:
+
+```bash
+ npm init -y
+```
+### 1.2 Depois instale:
+
+```bash
+npm install express cors
+```
+### 2. Inicie o servidor: (com um dos abaixo) no terminal:
+
+```bash
+node server.js
+```
+
+```bash
+ cd backend
+ node server.js
+```
