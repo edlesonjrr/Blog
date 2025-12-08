@@ -1,5 +1,5 @@
 services:
-  # PostgreSQL para ThingsBoard
+  # PostgreSQL Database
   postgres:
     image: postgres:15
     container_name: postgres
@@ -14,6 +14,11 @@ services:
       - "5433:5432"
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -23,6 +28,15 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: devops
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - app-network
 

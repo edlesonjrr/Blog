@@ -3,26 +3,38 @@
 // -----------------------------
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
+const { Pool } = require("pg");
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Caminho do nosso "banco de dados"
-const DB_PATH = __dirname + "/data.json";
+// Configuração do PostgreSQL
+const pool = new Pool({
+    host: process.env.DB_HOST || "postgres",
+    port: process.env.DB_PORT || 5432,
+    database: process.env.DB_NAME || "devops",
+    user: process.env.DB_USER || "postgres",
+    password: process.env.DB_PASSWORD || "postgres",
+});
 
-// Carregar dados do arquivo
-function loadDB() {
-    if (!fs.existsSync(DB_PATH)) {
-        fs.writeFileSync(DB_PATH, JSON.stringify({ users: [], posts: [] }, null, 2));
+// Teste de conexão e inicialização do banco
+async function initializeDatabase() {
+    try {
+        const client = await pool.connect();
+        console.log("Conectado ao PostgreSQL com sucesso!");
+
+        // Executar script de inicialização
+        const fs = require("fs");
+        const initSQL = fs.readFileSync(__dirname + "/init-db.sql", "utf-8");
+        await client.query(initSQL);
+        console.log("Banco de dados inicializado!");
+
+        client.release();
+    } catch (err) {
+        console.error("Erro ao conectar ao banco de dados:", err);
+        process.exit(1);
     }
-    return JSON.parse(fs.readFileSync(DB_PATH));
-}
-
-// Salvar dados no arquivo
-function saveDB(data) {
-    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 }
 
 // -----------------------------
@@ -30,78 +42,104 @@ function saveDB(data) {
 // -----------------------------
 
 // Obter lista de usuários
-app.get("/users", (req, res) => {
-    const db = loadDB();
-    res.json(db.users);
+app.get("/users", async (req, res) => {
+    try {
+        const result = await pool.query("SELECT id, username, created_at FROM users ORDER BY created_at DESC");
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: "Erro ao buscar usuários", details: err.message });
+    }
 });
 
 // Criar conta
-app.post("/create-account", (req, res) => {
+app.post("/create-account", async (req, res) => {
     const { user, password } = req.body;
 
     if (!user || !password) {
         return res.json({ error: "Usuário e senha são obrigatórios." });
     }
 
-    const db = loadDB();
+    try {
+        // Verifica se já existe
+        const checkUser = await pool.query("SELECT * FROM users WHERE username = $1", [user]);
 
-    // Verifica se já existe
-    if (db.users.find(u => u.user === user)) {
-        return res.json({ error: "Usuário já existe!" });
+        if (checkUser.rows.length > 0) {
+            return res.json({ error: "Usuário já existe!" });
+        }
+
+        await pool.query("INSERT INTO users (username, password) VALUES ($1, $2)", [user, password]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Erro ao criar conta", details: err.message });
     }
-
-    db.users.push({ user, password });
-    saveDB(db);
-
-    res.json({ success: true });
 });
 
 // Login
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
     const { user, password } = req.body;
 
-    const db = loadDB();
-    const found = db.users.find(u => u.user === user && u.password === password);
+    try {
+        const result = await pool.query(
+            "SELECT * FROM users WHERE username = $1 AND password = $2",
+            [user, password]
+        );
 
-    if (!found) {
-        return res.json({ error: "Credenciais inválidas." });
+        if (result.rows.length === 0) {
+            return res.json({ error: "Credenciais inválidas." });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Erro ao fazer login", details: err.message });
     }
-
-    res.json({ success: true });
 });
 
 // -----------------------------
 // ROTAS DE POSTS
 // -----------------------------
 
-// Obter posts
-app.get("/posts", (req, res) => {
-    const db = loadDB();
-    res.json(db.posts);
+// Obter posts com comentários
+app.get("/posts", async (req, res) => {
+    try {
+        const postsResult = await pool.query("SELECT * FROM posts ORDER BY created_at DESC");
+        const posts = postsResult.rows;
+
+        // Buscar comentários para cada post
+        for (let post of posts) {
+            const commentsResult = await pool.query(
+                "SELECT * FROM comments WHERE post_id = $1 ORDER BY created_at ASC",
+                [post.id]
+            );
+            post.comments = commentsResult.rows;
+        }
+
+        res.json(posts);
+    } catch (err) {
+        res.status(500).json({ error: "Erro ao buscar posts", details: err.message });
+    }
 });
 
 // Criar post
-app.post("/posts", (req, res) => {
+app.post("/posts", async (req, res) => {
     const { title, content, author } = req.body;
 
     if (!title || !content || !author) {
         return res.json({ error: "Todos os campos são obrigatórios." });
     }
 
-    const db = loadDB();
+    try {
+        const result = await pool.query(
+            "INSERT INTO posts (title, content, author) VALUES ($1, $2, $3) RETURNING *",
+            [title, content, author]
+        );
 
-    const newPost = {
-        id: Date.now(),
-        title,
-        content,
-        author,
-        comments: []
-    };
+        const newPost = result.rows[0];
+        newPost.comments = [];
 
-    db.posts.push(newPost);
-    saveDB(db);
-
-    res.json({ success: true, post: newPost });
+        res.json({ success: true, post: newPost });
+    } catch (err) {
+        res.status(500).json({ error: "Erro ao criar post", details: err.message });
+    }
 });
 
 // -----------------------------
@@ -109,34 +147,49 @@ app.post("/posts", (req, res) => {
 // -----------------------------
 
 // Enviar comentário
-app.post("/comments", (req, res) => {
+app.post("/comments", async (req, res) => {
     const { postId, comment, author } = req.body;
 
     if (!comment || !author) {
         return res.json({ error: "Comentário e autor são obrigatórios." });
     }
 
-    const db = loadDB();
-    const post = db.posts.find(p => p.id === postId);
+    try {
+        // Verifica se o post existe
+        const postCheck = await pool.query("SELECT * FROM posts WHERE id = $1", [postId]);
 
-    if (!post) {
-        return res.json({ error: "Post não encontrado." });
+        if (postCheck.rows.length === 0) {
+            return res.json({ error: "Post não encontrado." });
+        }
+
+        await pool.query(
+            "INSERT INTO comments (post_id, author, comment) VALUES ($1, $2, $3)",
+            [postId, author, comment]
+        );
+
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Erro ao criar comentário", details: err.message });
     }
+});
 
-    post.comments.push({
-        id: Date.now(),
-        author,
-        comment
-    });
-
-    saveDB(db);
-
-    res.json({ success: true });
+// -----------------------------
+// HEALTH CHECK
+// -----------------------------
+app.get("/health", async (req, res) => {
+    try {
+        await pool.query("SELECT 1");
+        res.json({ status: "healthy", database: "connected" });
+    } catch (err) {
+        res.status(500).json({ status: "unhealthy", database: "disconnected", error: err.message });
+    }
 });
 
 // -----------------------------
 // INICIAR SERVIDOR
 // -----------------------------
-app.listen(3000, () => {
-    console.log("Servidor rodando em http://localhost:3000");
+initializeDatabase().then(() => {
+    app.listen(3000, () => {
+        console.log("Servidor rodando em http://localhost:3000");
+    });
 });
