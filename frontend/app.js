@@ -7,7 +7,10 @@
 // posts-list, posts-count, filter-category, sort-posts, category-list, top-authors, latest-comments,
 // template-post, confirm-yes, confirm-no, post-cancel, toggle-theme
 
-const API = "http://localhost:3000";
+// Detecta automaticamente se está em localhost ou no servidor
+const API = window.location.hostname === 'localhost'
+  ? "http://localhost:3000"
+  : `http://${window.location.hostname}:3000`;
 
 // helpers
 const qs = (s) => document.querySelector(s);
