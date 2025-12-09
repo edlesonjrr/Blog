@@ -75,9 +75,9 @@ jobs:
             git fetch origin
             git checkout ${{ github.ref_name }}
             git pull origin ${{ github.ref_name }}
-            docker compose down
-            docker compose build
-            docker compose up -d
+            docker-compose down
+            docker-compose build
+            docker-compose up -d
             docker system prune -f
           EOF
 
