@@ -93,7 +93,9 @@ jobs:
           chmod 600 private_key.pem
 
           ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USER}@${EC2_HOST} << 'EOF'
-            sleep 10
+            cd /home/ubuntu/blog
+            echo "Aguardando 45 segundos para containers iniciarem..."
+            sleep 45
             curl -f http://localhost:3000/health || exit 1
             echo "Deployment successful!"
           EOF
