@@ -18,22 +18,34 @@ const pool = new Pool({
     password: process.env.DB_PASSWORD || "postgres",
 });
 
-// Teste de conexão e inicialização do banco
-async function initializeDatabase() {
-    try {
-        const client = await pool.connect();
-        console.log("Conectado ao PostgreSQL com sucesso!");
+// Teste de conexão e inicialização do banco com retry
+async function initializeDatabase(retries = 5) {
+    for (let i = 1; i <= retries; i++) {
+        try {
+            console.log(`Tentativa ${i}/${retries} de conectar ao PostgreSQL...`);
+            const client = await pool.connect();
+            console.log("✅ Conectado ao PostgreSQL com sucesso!");
 
-        // Executar script de inicialização
-        const fs = require("fs");
-        const initSQL = fs.readFileSync(__dirname + "/init-db.sql", "utf-8");
-        await client.query(initSQL);
-        console.log("Banco de dados inicializado!");
+            // Executar script de inicialização
+            const fs = require("fs");
+            const initSQL = fs.readFileSync(__dirname + "/init-db.sql", "utf-8");
+            await client.query(initSQL);
+            console.log("✅ Banco de dados inicializado!");
 
-        client.release();
-    } catch (err) {
-        console.error("Erro ao conectar ao banco de dados:", err);
-        process.exit(1);
+            client.release();
+            return; // Sucesso! Sair da função
+        } catch (err) {
+            console.error(`❌ Tentativa ${i} falhou:`, err.message);
+
+            if (i === retries) {
+                console.error("💥 Não foi possível conectar ao banco após todas as tentativas");
+                process.exit(1);
+            }
+
+            // Aguardar antes de tentar novamente
+            console.log(`⏳ Aguardando 3 segundos antes da próxima tentativa...`);
+            await new Promise(resolve => setTimeout(resolve, 3000));
+        }
     }
 }
 

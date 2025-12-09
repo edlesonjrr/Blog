@@ -4,18 +4,17 @@ FROM node:18-alpine
 # Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia package.json para instalar dependências
+# Copia package.json e package-lock.json
 COPY package*.json ./
 
-# Instala as dependências
-RUN npm install --production
+# Instala as dependências (sem --production para garantir todas as deps)
+RUN npm ci --only=production || npm install
 
-# Copia o código da aplicação e o arquivo de inicialização do banco
-COPY server.js ./
-COPY init-db.sql ./
+# Copia os arquivos da aplicação
+COPY server.js init-db.sql ./
 
 # Expõe a porta da aplicação
 EXPOSE 3000
 
 # Comando para iniciar o servidor
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
