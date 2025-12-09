@@ -1,0 +1,109 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+      - staging
+      - main
+  pull_request:
+    branches:
+      - dev
+      - staging
+      - main
+
+jobs:
+  # Build and Test Job
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker images
+        run: |
+          docker compose build
+
+      - name: Start services
+        run: |
+          docker compose up -d
+          sleep 30
+
+      - name: Check backend health
+        run: |
+          curl -f http://localhost:3000/health || exit 1
+
+      - name: Check frontend
+        run: |
+          curl -f http://localhost:8080 || exit 1
+
+      - name: Show logs
+        if: failure()
+        run: |
+          docker compose logs
+
+      - name: Stop services
+        run: |
+          docker compose down
+
+  # Deploy to EC2 (for staging and main branches)
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USER}@${EC2_HOST} << 'EOF'
+            cd /home/ubuntu/blog
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+            docker-compose down
+            docker-compose build
+            docker-compose up -d
+            docker system prune -f
+          EOF
+
+          rm -f private_key.pem
+
+      - name: Verify deployment
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USER}@${EC2_HOST} << 'EOF'
+            cd /home/ubuntu/blog
+            echo "Aguardando 45 segundos para containers iniciarem..."
+            sleep 45
+            curl -f http://localhost:3000/health || exit 1
+            echo "Deployment successful!"
+          EOF
+
+          rm -f private_key.pem
+
+      - name: Notify deployment success
+        run: |
+          echo "Deployment to ${{ github.ref_name }} successful!"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"

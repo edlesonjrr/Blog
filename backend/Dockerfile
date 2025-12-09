@@ -1,16 +1,20 @@
-#Escolhe a imagem base oficial do Node
+# Escolhe a imagem base oficial do Node
 FROM node:18-alpine
 
-#Define o diretório de trabalho dentro do container
+# Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-#Copia o restante do código da aplicação
-COPY server.js package.json data.json ./
+# Copia package.json e package-lock.json
+COPY package*.json ./
 
-RUN npm install
+# Instala as dependências (sem --production para garantir todas as deps)
+RUN npm ci --only=production || npm install
 
-#Expõe a porta da aplicação (geralmente 3000)
+# Copia os arquivos da aplicação
+COPY server.js init-db.sql ./
+
+# Expõe a porta da aplicação
 EXPOSE 3000
 
-#Comando para iniciar o servidor
-CMD ["npm", "start"]
+# Comando para iniciar o servidor
+CMD ["node", "server.js"]

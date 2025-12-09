@@ -26,10 +26,11 @@ Um blog completo criado do zero, com **frontend moderno**, **backend em Node.js 
 - Fetch API  
 
 ### **Backend**
-- Node.js  
-- Express  
-- CORS  
-- File system (JSON como banco de dados)
+- Node.js
+- Express
+- CORS
+- PostgreSQL (banco de dados relacional)
+- pg (PostgreSQL client)
 
 ---
 
@@ -39,41 +40,118 @@ Uma breve descrição sobre o que esse projeto faz e para quem ele é
 
 
 ```bash
-  /backend
+/backend
 ├── server.js
-├── data.json
+├── init-db.sql
+├── Dockerfile
 └── package.json
 
 /frontend
 ├── index.html
 ├── style.css
-└── app.js
+├── app.js
+└── Dockerfile
+
+/.github
+└── workflows
+    └── ci-cd.yml
+
+docker-compose.yaml
+AWS_DEPLOYMENT_PLAN.md
 ```
-## ▶️ Como Rodar (abra o terminal)
-### 1. Instale as dependências
-No diretório **backend**:
+## ▶️ Como Rodar
+
+### Opção 1: Com Docker (Recomendado)
 
 ```bash
- npm install
+# Inicie todos os serviços (frontend, backend e PostgreSQL)
+docker compose up -d
+
+# Veja os logs
+docker compose logs -f
+
+# Pare os serviços
+docker compose down
 ```
 
-### 1.1 Se não existir package.json, inicialize:
+**Acesse a aplicação:**
+- Frontend: http://localhost:8080
+- Backend API: http://localhost:3000
+- Health Check: http://localhost:3000/health
 
+### Opção 2: Desenvolvimento Local
+
+#### 1. Inicie o PostgreSQL
 ```bash
- npm init -y
+docker compose up -d postgres
 ```
-### 1.2 Depois instale:
 
+#### 2. Instale as dependências do backend
 ```bash
-npm install express cors
+cd backend
+npm install
 ```
-### 2. Inicie o servidor: (com um dos abaixo) no terminal:
 
+#### 3. Inicie o servidor
 ```bash
+cd backend
 node server.js
 ```
 
+#### 4. Abra o frontend
+Abra `frontend/index.html` no navegador ou use um servidor local:
 ```bash
- cd backend
- node server.js
+cd frontend
+python3 -m http.server 8080
 ```
+
+---
+
+## 🚀 DevOps Features
+
+### ✅ Banco de Dados PostgreSQL
+- Migramos de `data.json` para PostgreSQL relacional
+- Tabelas: `users`, `posts`, `comments`
+- Script de inicialização automática: `backend/init-db.sql`
+
+### ✅ Docker & Docker Compose
+- **3 serviços**: PostgreSQL, Backend (Node.js), Frontend (Nginx)
+- Health checks configurados
+- Volumes persistentes para dados do PostgreSQL
+- Network isolado para comunicação entre containers
+
+### ✅ CI/CD com GitHub Actions
+- **Build e Test**: Validação automática em cada push
+- **Deploy Staging**: Automático ao fazer push na branch `staging`
+- **Deploy Production**: Automático ao fazer push na branch `main`
+- Workflow completo em `.github/workflows/ci-cd.yml`
+
+### ✅ GIT Workflow
+- **3 branches**: `dev`, `staging`, `main`
+- `dev` → desenvolvimento
+- `staging` → testes e homologação
+- `main` → produção
+
+### ✅ AWS Deployment
+- Instruções detalhadas em `AWS_DEPLOYMENT_PLAN.md`
+- Deploy automático via GitHub Actions
+- Suporte para ambientes staging e production
+
+---
+
+## 📊 API Endpoints
+
+### Usuários
+- `GET /users` - Lista todos os usuários
+- `POST /create-account` - Cria nova conta
+- `POST /login` - Realiza login
+
+### Posts
+- `GET /posts` - Lista todos os posts com comentários
+- `POST /posts` - Cria novo post
+
+### Comentários
+- `POST /comments` - Adiciona comentário a um post
+
+### Health Check
+- `GET /health` - Verifica saúde da aplicação e conexão com o banco
