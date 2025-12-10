@@ -189,7 +189,8 @@ if (loginForm) {
       if (!user || !password) return flash("Preencha todos os campos!", "error");
       const res = await api("/login", "POST", { user, password });
       if (res?.error) return flash(res.error, "error");
-      setCurrentUser(res);
+      // Backend retorna {success: true}, então criamos o objeto do usuário
+      setCurrentUser({ user, password });
       flash("Login realizado!", "success");
       hideModal("modal-login");
       await loadPosts();
@@ -210,7 +211,8 @@ if (createForm) {
       if (!user || !password) return flash("Preencha os campos!", "error");
       const res = await api("/create-account", "POST", { user, password, avatar });
       if (res?.error) return flash(res.error, "error");
-      setCurrentUser(res);
+      // Backend retorna {success: true}, então criamos o objeto do usuário
+      setCurrentUser({ user, password, avatar });
       flash("Conta criada com sucesso!", "success");
       hideModal("modal-create");
       await loadPosts();
@@ -231,7 +233,7 @@ if (postForm) {
       const category = qs("#post-category")?.value.trim() || "Geral";
       if (!title || !body) return flash("Título e conteúdo são obrigatórios!", "error");
 
-      const payload = { title, body, category, author: currentUser.user };
+      const payload = { title, content: body, author: currentUser.user };
       const method = editingPostId ? "PUT" : "POST";
       const path = editingPostId ? `/posts/${editingPostId}` : "/posts";
 
@@ -393,9 +395,10 @@ async function submitComment(id, inputEl) {
   const text = (inputEl?.value || "").trim();
   if (!text) return;
   try {
-    const res = await api("/comments", "POST", { postId: id, text, author: currentUser.user });
+    const res = await api("/comments", "POST", { postId: id, comment: text, author: currentUser.user });
     if (res?.error) return flash(res.error, "error");
     inputEl.value = "";
+    flash("Comentário adicionado!", "success");
     await loadPosts();
   } catch (err) {
     console.error(err);
