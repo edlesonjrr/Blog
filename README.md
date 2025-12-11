@@ -15,20 +15,7 @@ Um blog completo criado do zero, com **frontend moderno**, **backend em Node.js 
 - ✔ Monitoramento completo com Prometheus + Grafana
 - ✔ CI/CD automatizado com GitHub Actions
 - ✔ Deploy automático na AWS EC2  
-Um blog completo criado do zero, com **frontend moderno**, **backend em Node.js + Express**, **PostgreSQL**, e **stack completa de monitoramento**.
 
-## ✨ Features
-
-- ✔ Criação de conta e autenticação
-- ✔ Login seguro
-- ✔ Criação e edição de posts
-- ✔ Sistema de comentários
-- ✔ Banco de dados PostgreSQL
-- ✔ API RESTful documentada
-- ✔ Interface responsiva e moderna
-- ✔ Monitoramento completo com Prometheus + Grafana
-- ✔ CI/CD automatizado com GitHub Actions
-- ✔ Deploy automático na AWS EC2  
 
 ## Screenshots
 
@@ -68,18 +55,6 @@ Um blog completo criado do zero, com **frontend moderno**, **backend em Node.js 
 - AWS EC2 (Ubuntu 24.04 LTS)
 - Deploy automático via GitHub Actions
 
-### **DevOps & Monitoring**
-- Docker & Docker Compose
-- GitHub Actions (CI/CD)
-- Prometheus (coleta de métricas)
-- Grafana (visualização e dashboards)
-- Node Exporter (métricas do sistema)
-- Postgres Exporter (métricas do banco)
-- cAdvisor (métricas dos containers)
-
-### **Cloud**
-- AWS EC2 (Ubuntu 24.04 LTS)
-- Deploy automático via GitHub Actions
 
 ---
 
@@ -106,7 +81,7 @@ Uma breve descrição sobre o que esse projeto faz e para quem ele é
     └── ci-cd.yml
 
 docker-compose.yaml
-AWS_DEPLOYMENT_PLAN.md
+
 ```
 ## ▶️ Como Rodar
 
@@ -133,22 +108,6 @@ docker-compose down
 docker-compose down
 ```
 
-### 🌐 Acesse a Aplicação (Local):
-
-| Serviço | URL | Descrição |
-|---------|-----|-----------|
-| **Frontend** | http://localhost:8080 | Interface do blog |
-| **Backend API** | http://localhost:3000 | API REST |
-| **Health Check** | http://localhost:3000/health | Status da aplicação |
-| **Prometheus** | http://localhost:9090 | Coleta de métricas |
-| **Grafana** | http://localhost:3001 | Dashboards e visualização |
-| **cAdvisor** | http://localhost:8081 | Métricas dos containers |
-| **Node Exporter** | http://localhost:9100/metrics | Métricas do sistema |
-| **Postgres Exporter** | http://localhost:9187/metrics | Métricas do PostgreSQL |
-
-**Credenciais Grafana (local):**
-- Usuário: `admin`
-- Senha: `admin`
 ### 🌐 Acesse a Aplicação (Local):
 
 | Serviço | URL | Descrição |
@@ -268,46 +227,7 @@ python3 -m http.server 8080
 | **cAdvisor** | http://13.58.227.69:8081 | Métricas dos containers |
 
 **⚠️ Nota**: As portas de monitoramento (Prometheus, Grafana, cAdvisor) devem estar abertas no Security Group da AWS.
-- Hospedado em AWS EC2 (Ubuntu 24.04 LTS)
-- Deploy automático via GitHub Actions em push para `staging` ou `main`
-- Documentação completa em `AWS_DEPLOYMENT_GUIDE.md`
-- Suporte para múltiplos ambientes (staging/production)
 
-### ✅ Monitoramento & Observabilidade
-
-#### **Prometheus** (Coleta de Métricas)
-- Coleta métricas de todos os serviços a cada 15 segundos
-- Armazena histórico de métricas
-- Query language (PromQL) para consultas avançadas
-- Configuração em `prometheus.yml`
-
-#### **Grafana** (Visualização)
-- Dashboards interativos e customizáveis
-- Alertas configuráveis
-- Visualização em tempo real
-- Suporte a múltiplas fontes de dados
-
-#### **Exporters** (Coletores de Métricas)
-- **Node Exporter**: CPU, RAM, Disco, Rede do servidor
-- **Postgres Exporter**: Conexões, queries, transações do banco
-- **cAdvisor**: CPU, memória, I/O dos containers Docker
-
----
-
-## 🌐 Acesso à Aplicação em Produção (AWS)
-
-### URLs Públicas:
-
-| Serviço | URL | Descrição |
-|---------|-----|-----------|
-| **Frontend (Produção)** | http://13.58.227.69:8080 | Interface do blog |
-| **Backend API** | http://13.58.227.69:3000 | API REST |
-| **Health Check** | http://13.58.227.69:3000/health | Status da aplicação |
-| **Prometheus** | http://13.58.227.69:9090 | Métricas do sistema |
-| **Grafana** | http://13.58.227.69:3001 | Dashboards de monitoramento |
-| **cAdvisor** | http://13.58.227.69:8081 | Métricas dos containers |
-
-**⚠️ Nota**: As portas de monitoramento (Prometheus, Grafana, cAdvisor) devem estar abertas no Security Group da AWS.
 
 ---
 
