@@ -369,11 +369,11 @@ docker exec -i postgres psql -U postgres devops < backup.sql
 
 ## 👨‍💻 Autor
 
-**Guilherme Leal**
-**Edleson Junior**
-**Lauro Viana**
-**Anthony Ramos**
-**Arthur Cabral**
+- **Guilherme Leal**
+- **Edleson Junior**
+- **Lauro Viana**
+- **Anthony Ramos**
+- **Arthur Cabral**
 
 - GitHub: [@edlesonjrr](https://github.com/edlesonjrr)
 
