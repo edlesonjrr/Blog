@@ -1,6 +1,20 @@
 
- # 📰 BlogSimples – Full Stack Blog + DevOps
+ # 📰 BlogSimples – Full Stack Blog + DevOps + DevOps
 
+Um blog completo criado do zero, com **frontend moderno**, **backend em Node.js + Express**, **PostgreSQL**, e **stack completa de monitoramento**.
+
+## ✨ Features
+
+- ✔ Criação de conta e autenticação
+- ✔ Login seguro
+- ✔ Criação e edição de posts
+- ✔ Sistema de comentários
+- ✔ Banco de dados PostgreSQL
+- ✔ API RESTful documentada
+- ✔ Interface responsiva e moderna
+- ✔ Monitoramento completo com Prometheus + Grafana
+- ✔ CI/CD automatizado com GitHub Actions
+- ✔ Deploy automático na AWS EC2  
 Um blog completo criado do zero, com **frontend moderno**, **backend em Node.js + Express**, **PostgreSQL**, e **stack completa de monitoramento**.
 
 ## ✨ Features
@@ -34,9 +48,25 @@ Um blog completo criado do zero, com **frontend moderno**, **backend em Node.js 
 ### **Backend**
 - Node.js 18
 - Express 5.x
+- Node.js 18
+- Express 5.x
 - CORS
 - PostgreSQL 15 (banco de dados relacional)
+- PostgreSQL 15 (banco de dados relacional)
 - pg (PostgreSQL client)
+
+### **DevOps & Monitoring**
+- Docker & Docker Compose
+- GitHub Actions (CI/CD)
+- Prometheus (coleta de métricas)
+- Grafana (visualização e dashboards)
+- Node Exporter (métricas do sistema)
+- Postgres Exporter (métricas do banco)
+- cAdvisor (métricas dos containers)
+
+### **Cloud**
+- AWS EC2 (Ubuntu 24.04 LTS)
+- Deploy automático via GitHub Actions
 
 ### **DevOps & Monitoring**
 - Docker & Docker Compose
@@ -85,8 +115,14 @@ AWS_DEPLOYMENT_PLAN.md
 ```bash
 # Inicie todos os serviços (aplicação + monitoramento)
 docker-compose up -d
+# Inicie todos os serviços (aplicação + monitoramento)
+docker-compose up -d
 
 # Veja os logs
+docker-compose logs -f
+
+# Veja status de todos os containers
+docker-compose ps
 docker-compose logs -f
 
 # Veja status de todos os containers
@@ -94,8 +130,25 @@ docker-compose ps
 
 # Pare os serviços
 docker-compose down
+docker-compose down
 ```
 
+### 🌐 Acesse a Aplicação (Local):
+
+| Serviço | URL | Descrição |
+|---------|-----|-----------|
+| **Frontend** | http://localhost:8080 | Interface do blog |
+| **Backend API** | http://localhost:3000 | API REST |
+| **Health Check** | http://localhost:3000/health | Status da aplicação |
+| **Prometheus** | http://localhost:9090 | Coleta de métricas |
+| **Grafana** | http://localhost:3001 | Dashboards e visualização |
+| **cAdvisor** | http://localhost:8081 | Métricas dos containers |
+| **Node Exporter** | http://localhost:9100/metrics | Métricas do sistema |
+| **Postgres Exporter** | http://localhost:9187/metrics | Métricas do PostgreSQL |
+
+**Credenciais Grafana (local):**
+- Usuário: `admin`
+- Senha: `admin`
 ### 🌐 Acesse a Aplicação (Local):
 
 | Serviço | URL | Descrição |
@@ -152,9 +205,14 @@ python3 -m http.server 8080
 - **8 containers** orquestrados:
   - **Aplicação**: Frontend (Nginx), Backend (Node.js), PostgreSQL
   - **Monitoramento**: Prometheus, Grafana, Node Exporter, Postgres Exporter, cAdvisor
+- **8 containers** orquestrados:
+  - **Aplicação**: Frontend (Nginx), Backend (Node.js), PostgreSQL
+  - **Monitoramento**: Prometheus, Grafana, Node Exporter, Postgres Exporter, cAdvisor
 - Health checks configurados
 - Volumes persistentes para dados do PostgreSQL, Prometheus e Grafana
+- Volumes persistentes para dados do PostgreSQL, Prometheus e Grafana
 - Network isolado para comunicação entre containers
+- Restart policies configuradas
 - Restart policies configuradas
 
 ### ✅ CI/CD com GitHub Actions
@@ -170,6 +228,46 @@ python3 -m http.server 8080
 - `main` → produção
 
 ### ✅ AWS Deployment
+- Hospedado em AWS EC2 (Ubuntu 24.04 LTS)
+- Deploy automático via GitHub Actions em push para `staging` ou `main`
+- Documentação completa em `AWS_DEPLOYMENT_GUIDE.md`
+- Suporte para múltiplos ambientes (staging/production)
+
+### ✅ Monitoramento & Observabilidade
+
+#### **Prometheus** (Coleta de Métricas)
+- Coleta métricas de todos os serviços a cada 15 segundos
+- Armazena histórico de métricas
+- Query language (PromQL) para consultas avançadas
+- Configuração em `prometheus.yml`
+
+#### **Grafana** (Visualização)
+- Dashboards interativos e customizáveis
+- Alertas configuráveis
+- Visualização em tempo real
+- Suporte a múltiplas fontes de dados
+
+#### **Exporters** (Coletores de Métricas)
+- **Node Exporter**: CPU, RAM, Disco, Rede do servidor
+- **Postgres Exporter**: Conexões, queries, transações do banco
+- **cAdvisor**: CPU, memória, I/O dos containers Docker
+
+---
+
+## 🌐 Acesso à Aplicação em Produção (AWS)
+
+### URLs Públicas:
+
+| Serviço | URL | Descrição |
+|---------|-----|-----------|
+| **Frontend (Produção)** | http://13.58.227.69:8080 | Interface do blog |
+| **Backend API** | http://13.58.227.69:3000 | API REST |
+| **Health Check** | http://13.58.227.69:3000/health | Status da aplicação |
+| **Prometheus** | http://13.58.227.69:9090 | Métricas do sistema |
+| **Grafana** | http://13.58.227.69:3001 | Dashboards de monitoramento |
+| **cAdvisor** | http://13.58.227.69:8081 | Métricas dos containers |
+
+**⚠️ Nota**: As portas de monitoramento (Prometheus, Grafana, cAdvisor) devem estar abertas no Security Group da AWS.
 - Hospedado em AWS EC2 (Ubuntu 24.04 LTS)
 - Deploy automático via GitHub Actions em push para `staging` ou `main`
 - Documentação completa em `AWS_DEPLOYMENT_GUIDE.md`
