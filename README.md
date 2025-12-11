@@ -232,6 +232,307 @@ python3 -m http.server 8080
 
 ---
 
+## 📮 Testando a API com Postman
+
+### Configuração Inicial
+
+1. **Baixe e instale o Postman**: https://www.postman.com/downloads/
+2. **URL Base da API**:
+   - **Local**: `http://localhost:3000`
+   - **Produção (AWS)**: `http://13.58.227.69:3000`
+
+### Headers Padrão
+
+Para todas as requisições que enviam dados (POST), adicione o header:
+```
+Content-Type: application/json
+```
+
+---
+
+### 🔐 Endpoints de Usuários
+
+#### 1. Listar Todos os Usuários
+
+**Método**: `GET`
+**URL**: `http://localhost:3000/users`
+**Headers**: Nenhum header adicional necessário
+**Body**: Nenhum
+
+**Resposta de Sucesso (200)**:
+```json
+[
+  {
+    "id": 1,
+    "username": "joao",
+    "created_at": "2025-12-10T14:30:00.000Z"
+  },
+  {
+    "id": 2,
+    "username": "maria",
+    "created_at": "2025-12-10T15:00:00.000Z"
+  }
+]
+```
+
+---
+
+#### 2. Criar Nova Conta
+
+**Método**: `POST`
+**URL**: `http://localhost:3000/create-account`
+**Headers**:
+```
+Content-Type: application/json
+```
+**Body (JSON)**:
+```json
+{
+  "user": "joao",
+  "password": "senha123"
+}
+```
+
+**Resposta de Sucesso**:
+```json
+{
+  "success": true
+}
+```
+
+**Resposta de Erro (usuário já existe)**:
+```json
+{
+  "error": "Usuário já existe!"
+}
+```
+
+**Resposta de Erro (campos obrigatórios)**:
+```json
+{
+  "error": "Usuário e senha são obrigatórios."
+}
+```
+
+---
+
+#### 3. Fazer Login
+
+**Método**: `POST`
+**URL**: `http://localhost:3000/login`
+**Headers**:
+```
+Content-Type: application/json
+```
+**Body (JSON)**:
+```json
+{
+  "user": "joao",
+  "password": "senha123"
+}
+```
+
+**Resposta de Sucesso**:
+```json
+{
+  "success": true
+}
+```
+
+**Resposta de Erro**:
+```json
+{
+  "error": "Credenciais inválidas."
+}
+```
+
+---
+
+### 📝 Endpoints de Posts
+
+#### 4. Listar Todos os Posts (com comentários)
+
+**Método**: `GET`
+**URL**: `http://localhost:3000/posts`
+**Headers**: Nenhum header adicional necessário
+**Body**: Nenhum
+
+**Resposta de Sucesso (200)**:
+```json
+[
+  {
+    "id": 1,
+    "title": "Meu Primeiro Post",
+    "content": "Este é o conteúdo do meu primeiro post!",
+    "author": "joao",
+    "created_at": "2025-12-10T16:00:00.000Z",
+    "comments": [
+      {
+        "id": 1,
+        "post_id": 1,
+        "author": "maria",
+        "comment": "Ótimo post!",
+        "created_at": "2025-12-10T16:30:00.000Z"
+      }
+    ]
+  }
+]
+```
+
+---
+
+#### 5. Criar Novo Post
+
+**Método**: `POST`
+**URL**: `http://localhost:3000/posts`
+**Headers**:
+```
+Content-Type: application/json
+```
+**Body (JSON)**:
+```json
+{
+  "title": "Meu Primeiro Post",
+  "content": "Este é o conteúdo do meu primeiro post!",
+  "author": "joao"
+}
+```
+
+**Resposta de Sucesso**:
+```json
+{
+  "success": true,
+  "post": {
+    "id": 1,
+    "title": "Meu Primeiro Post",
+    "content": "Este é o conteúdo do meu primeiro post!",
+    "author": "joao",
+    "created_at": "2025-12-10T16:00:00.000Z",
+    "comments": []
+  }
+}
+```
+
+**Resposta de Erro**:
+```json
+{
+  "error": "Todos os campos são obrigatórios."
+}
+```
+
+---
+
+### 💬 Endpoints de Comentários
+
+#### 6. Adicionar Comentário a um Post
+
+**Método**: `POST`
+**URL**: `http://localhost:3000/comments`
+**Headers**:
+```
+Content-Type: application/json
+```
+**Body (JSON)**:
+```json
+{
+  "postId": 1,
+  "author": "maria",
+  "comment": "Ótimo post! Muito interessante."
+}
+```
+
+**Resposta de Sucesso**:
+```json
+{
+  "success": true
+}
+```
+
+**Resposta de Erro (post não encontrado)**:
+```json
+{
+  "error": "Post não encontrado."
+}
+```
+
+**Resposta de Erro (campos obrigatórios)**:
+```json
+{
+  "error": "Comentário e autor são obrigatórios."
+}
+```
+
+---
+
+### 🏥 Health Check
+
+#### 7. Verificar Saúde da Aplicação
+
+**Método**: `GET`
+**URL**: `http://localhost:3000/health`
+**Headers**: Nenhum header adicional necessário
+**Body**: Nenhum
+
+**Resposta de Sucesso (200)**:
+```json
+{
+  "status": "healthy",
+  "database": "connected"
+}
+```
+
+**Resposta de Erro (500)**:
+```json
+{
+  "status": "unhealthy",
+  "database": "disconnected",
+  "error": "mensagem de erro"
+}
+```
+
+---
+
+### 🎯 Fluxo de Teste Completo no Postman
+
+Siga esta ordem para testar a aplicação completa:
+
+1. **Health Check**: Verifique se a API está rodando
+   - `GET /health`
+
+2. **Criar Conta**: Crie um novo usuário
+   - `POST /create-account` com `{"user": "joao", "password": "senha123"}`
+
+3. **Login**: Faça login com o usuário criado
+   - `POST /login` com `{"user": "joao", "password": "senha123"}`
+
+4. **Listar Usuários**: Veja todos os usuários cadastrados
+   - `GET /users`
+
+5. **Criar Post**: Crie um novo post
+   - `POST /posts` com `{"title": "Título", "content": "Conteúdo", "author": "joao"}`
+
+6. **Listar Posts**: Veja todos os posts
+   - `GET /posts`
+
+7. **Adicionar Comentário**: Adicione um comentário ao post (use o `id` retornado no passo 5)
+   - `POST /comments` com `{"postId": 1, "author": "maria", "comment": "Ótimo!"}`
+
+8. **Listar Posts Novamente**: Veja o post com o comentário
+   - `GET /posts`
+
+---
+
+### 📥 Importar Collection no Postman (Opcional)
+
+Você pode criar uma **Collection** no Postman com todos esses endpoints:
+
+1. Clique em **New** → **Collection**
+2. Nomeie como "BlogSimples API"
+3. Adicione cada endpoint como uma nova **Request** dentro da collection
+4. Salve a collection e compartilhe com sua equipe
+
+---
+
 ## 📈 Configurar Grafana (Dashboards)
 
 ### Primeiro Acesso:
@@ -362,7 +663,7 @@ docker exec -i postgres psql -U postgres devops < backup.sql
 - [x] GIT com 3 branches (dev, staging, main)
 - [x] Health checks configurados
 - [x] API REST documentada
-- [ ] Postman Collection (pendente)
+- [x] Documentação de testes com Postman
 - [ ] Zabbix (opcional)
 
 ---
