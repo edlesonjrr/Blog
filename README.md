@@ -380,8 +380,8 @@ docker exec -i postgres psql -U postgres devops < backup.sql
 - [x] GIT com 3 branches (dev, staging, main)
 - [x] Health checks configurados
 - [x] API REST documentada
-- [ ] Postman Collection (pendente)
-- [ ] Zabbix (opcional)
+- [x] Postman Collection
+- [x] cAdvisor (no lugar do zabixx)
 
 ---
 
