@@ -1,406 +1,145 @@
+# Full-Stack Blog & Observability Platform
 
- # 📰 BlogSimples – Full Stack Blog + DevOps + DevOps
+A containerized blog application that combines a browser-based client,
+REST API, relational database, CI/CD, and infrastructure monitoring in one
+repository.
 
-Um blog completo criado do zero, com **frontend moderno**, **backend em Node.js + Express**, **PostgreSQL**, e **stack completa de monitoramento**.
+[Live application](https://blog-tan-eight-61.vercel.app)
 
-## ✨ Features
+## What this project demonstrates
 
-- ✔ Criação de conta e autenticação
-- ✔ Login seguro
-- ✔ Criação e edição de posts
-- ✔ Sistema de comentários
-- ✔ Banco de dados PostgreSQL
-- ✔ API RESTful documentada
-- ✔ Interface responsiva e moderna
-- ✔ Monitoramento completo com Prometheus + Grafana
-- ✔ CI/CD automatizado com GitHub Actions
-- ✔ Deploy automático na AWS EC2  
+- Account creation and login flows
+- Post creation, editing, and comments
+- REST API backed by PostgreSQL
+- Multi-service orchestration with Docker Compose
+- Automated image builds and health checks in GitHub Actions
+- Branch-based deployment workflow for staging and production
+- Application and infrastructure observability with Prometheus and Grafana
 
+## Architecture
 
-## Screenshots
+```text
+Browser
+   │
+   ▼
+Frontend (Nginx) ──────► Backend API (Node.js + Express)
+                                │
+                                ▼
+                          PostgreSQL 15
 
-![App Screenshot](image/tela1.png)
-
-
----
-
-## 🚀 Tecnologias Usadas
-
-### **Frontend**
-- HTML5  
-- CSS3  
-- JavaScript (vanilla)  
-- Fetch API  
-
-### **Backend**
-- Node.js 18
-- Express 5.x
-- Node.js 18
-- Express 5.x
-- CORS
-- PostgreSQL 15 (banco de dados relacional)
-- PostgreSQL 15 (banco de dados relacional)
-- pg (PostgreSQL client)
-
-### **DevOps & Monitoring**
-- Docker & Docker Compose
-- GitHub Actions (CI/CD)
-- Prometheus (coleta de métricas)
-- Grafana (visualização e dashboards)
-- Node Exporter (métricas do sistema)
-- Postgres Exporter (métricas do banco)
-- cAdvisor (métricas dos containers)
-
-### **Cloud**
-- AWS EC2 (Ubuntu 24.04 LTS)
-- Deploy automático via GitHub Actions
-
-
----
-
-## 📁 Estrutura do Projeto
-
-Uma breve descrição sobre o que esse projeto faz e para quem ele é
-
-
-```bash
-/backend
-├── server.js
-├── init-db.sql
-├── Dockerfile
-└── package.json
-
-/frontend
-├── index.html
-├── style.css
-├── app.js
-└── Dockerfile
-
-/.github
-└── workflows
-    └── ci-cd.yml
-
-docker-compose.yaml
-
-```
-## ▶️ Como Rodar
-
-### Opção 1: Com Docker (Recomendado)
-
-```bash
-# Inicie todos os serviços (aplicação + monitoramento)
-docker-compose up -d
-# Inicie todos os serviços (aplicação + monitoramento)
-docker-compose up -d
-
-# Veja os logs
-docker-compose logs -f
-
-# Veja status de todos os containers
-docker-compose ps
-docker-compose logs -f
-
-# Veja status de todos os containers
-docker-compose ps
-
-# Pare os serviços
-docker-compose down
-docker-compose down
+Prometheus ◄── Node Exporter / Postgres Exporter / cAdvisor
+   │
+   ▼
+Grafana
 ```
 
-### 🌐 Acesse a Aplicação (Local):
+## Tech stack
 
-| Serviço | URL | Descrição |
-|---------|-----|-----------|
-| **Frontend** | http://localhost:8080 | Interface do blog |
-| **Backend API** | http://localhost:3000 | API REST |
-| **Health Check** | http://localhost:3000/health | Status da aplicação |
-| **Prometheus** | http://localhost:9090 | Coleta de métricas |
-| **Grafana** | http://localhost:3001 | Dashboards e visualização |
-| **cAdvisor** | http://localhost:8081 | Métricas dos containers |
-| **Node Exporter** | http://localhost:9100/metrics | Métricas do sistema |
-| **Postgres Exporter** | http://localhost:9187/metrics | Métricas do PostgreSQL |
+| Layer | Technologies |
+|---|---|
+| Front end | HTML, CSS, JavaScript, Fetch API, Nginx |
+| Back end | Node.js, Express, CORS, `pg` |
+| Database | PostgreSQL 15 |
+| Containers | Docker and Docker Compose |
+| CI/CD | GitHub Actions and AWS EC2 deployment workflow |
+| Observability | Prometheus, Grafana, Node Exporter, Postgres Exporter, cAdvisor |
 
-**Credenciais Grafana (local):**
-- Usuário: `admin`
-- Senha: `admin`
+## Repository structure
 
-### Opção 2: Desenvolvimento Local
-
-#### 1. Inicie o PostgreSQL
-```bash
-docker compose up -d postgres
+```text
+.
+├── .github/workflows/ci-cd.yml
+├── backend/
+│   ├── Dockerfile
+│   ├── init-db.sql
+│   ├── package.json
+│   └── server.js
+├── frontend/
+│   ├── Dockerfile
+│   ├── app.js
+│   ├── index.html
+│   └── style.css
+├── docker-compose.yaml
+├── prometheus.yml
+├── AWS_DEPLOYMENT_GUIDE.md
+└── AWS_DEPLOYMENT_PLAN.md
 ```
 
-#### 2. Instale as dependências do backend
+## Run locally with Docker
+
+### Requirements
+
+- Docker Engine or Docker Desktop
+- Docker Compose v2
+
+### Start the stack
+
 ```bash
-cd backend
-npm install
+git clone https://github.com/edlesonjrr/Blog.git
+cd Blog
+docker compose up --build -d
 ```
 
-#### 3. Inicie o servidor
+### Local services
+
+| Service | URL |
+|---|---|
+| Front end | `http://localhost:8080` |
+| Backend API | `http://localhost:3000` |
+| Health check | `http://localhost:3000/health` |
+| Prometheus | `http://localhost:9090` |
+| Grafana | `http://localhost:3001` |
+| cAdvisor | `http://localhost:8081` |
+
+The credentials in `docker-compose.yaml` are intended only for local
+development. Replace them with environment variables and secret management
+before exposing any service outside a trusted machine.
+
+### Inspect and stop
+
 ```bash
-cd backend
-node server.js
+docker compose ps
+docker compose logs -f
+docker compose down
 ```
 
-#### 4. Abra o frontend
-Abra `frontend/index.html` no navegador ou use um servidor local:
-```bash
-cd frontend
-python3 -m http.server 8080
-```
+## API overview
 
----
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `POST` | `/create-account` | Create an account |
+| `POST` | `/login` | Authenticate a user |
+| `GET` | `/users` | List users |
+| `GET` | `/posts` | List posts and comments |
+| `POST` | `/posts` | Create a post |
+| `POST` | `/comments` | Add a comment |
+| `GET` | `/health` | Check API and database health |
 
-## 🚀 DevOps Features
+## CI/CD
 
-### ✅ Banco de Dados PostgreSQL
-- Migramos de `data.json` para PostgreSQL relacional
-- Tabelas: `users`, `posts`, `comments`
-- Script de inicialização automática: `backend/init-db.sql`
+The GitHub Actions workflow:
 
-### ✅ Docker & Docker Compose
-- **8 containers** orquestrados:
-  - **Aplicação**: Frontend (Nginx), Backend (Node.js), PostgreSQL
-  - **Monitoramento**: Prometheus, Grafana, Node Exporter, Postgres Exporter, cAdvisor
-- **8 containers** orquestrados:
-  - **Aplicação**: Frontend (Nginx), Backend (Node.js), PostgreSQL
-  - **Monitoramento**: Prometheus, Grafana, Node Exporter, Postgres Exporter, cAdvisor
-- Health checks configurados
-- Volumes persistentes para dados do PostgreSQL, Prometheus e Grafana
-- Volumes persistentes para dados do PostgreSQL, Prometheus e Grafana
-- Network isolado para comunicação entre containers
-- Restart policies configuradas
-- Restart policies configuradas
+1. Builds all Docker images.
+2. Starts the stack in CI.
+3. Verifies the back-end health endpoint and front end.
+4. Publishes diagnostic logs on failure.
+5. Deploys `staging` and `main` through environment-scoped GitHub secrets.
 
-### ✅ CI/CD com GitHub Actions
-- **Build e Test**: Validação automática em cada push
-- **Deploy Staging**: Automático ao fazer push na branch `staging`
-- **Deploy Production**: Automático ao fazer push na branch `main`
-- Workflow completo em `.github/workflows/ci-cd.yml`
+Required deployment secrets are documented by name in the workflow; no host,
+private key, or production credential is stored in this repository.
 
-### ✅ GIT Workflow
-- **3 branches**: `dev`, `staging`, `main`
-- `dev` → desenvolvimento
-- `staging` → testes e homologação
-- `main` → produção
+## Observability
 
-### ✅ AWS Deployment
-- Hospedado em AWS EC2 (Ubuntu 24.04 LTS)
-- Deploy automático via GitHub Actions em push para `staging` ou `main`
-- Documentação completa em `AWS_DEPLOYMENT_GUIDE.md`
-- Suporte para múltiplos ambientes (staging/production)
+- Prometheus collects service and host metrics.
+- Grafana provides dashboard visualization.
+- Node Exporter exposes system metrics.
+- Postgres Exporter exposes database metrics.
+- cAdvisor exposes container resource usage.
 
-### ✅ Monitoramento & Observabilidade
+For production, keep monitoring endpoints behind a firewall, VPN, or authenticated
+reverse proxy instead of exposing their ports publicly.
 
-#### **Prometheus** (Coleta de Métricas)
-- Coleta métricas de todos os serviços a cada 15 segundos
-- Armazena histórico de métricas
-- Query language (PromQL) para consultas avançadas
-- Configuração em `prometheus.yml`
+## Authors
 
-#### **Grafana** (Visualização)
-- Dashboards interativos e customizáveis
-- Alertas configuráveis
-- Visualização em tempo real
-- Suporte a múltiplas fontes de dados
-
-#### **Exporters** (Coletores de Métricas)
-- **Node Exporter**: CPU, RAM, Disco, Rede do servidor
-- **Postgres Exporter**: Conexões, queries, transações do banco
-- **cAdvisor**: CPU, memória, I/O dos containers Docker
-
----
-
-## 🌐 Acesso à Aplicação em Produção (AWS)
-
-### URLs Públicas:
-
-| Serviço | URL | Descrição |
-|---------|-----|-----------|
-| **Frontend (Produção)** | http://13.58.227.69:8080 | Interface do blog |
-| **Backend API** | http://13.58.227.69:3000 | API REST |
-| **Health Check** | http://13.58.227.69:3000/health | Status da aplicação |
-| **Prometheus** | http://13.58.227.69:9090 | Métricas do sistema |
-| **Grafana** | http://13.58.227.69:3001 | Dashboards de monitoramento |
-| **cAdvisor** | http://13.58.227.69:8081 | Métricas dos containers |
-
-**⚠️ Nota**: As portas de monitoramento (Prometheus, Grafana, cAdvisor) devem estar abertas no Security Group da AWS.
-
-
----
-
-## 📊 API Endpoints
-
-### Usuários
-- `GET /users` - Lista todos os usuários
-- `POST /create-account` - Cria nova conta
-- `POST /login` - Realiza login
-
-### Posts
-- `GET /posts` - Lista todos os posts com comentários
-- `POST /posts` - Cria novo post
-
-### Comentários
-- `POST /comments` - Adiciona comentário a um post
-
-### Health Check
-- `GET /health` - Verifica saúde da aplicação e conexão com o banco
-
----
-
-## 📈 Configurar Grafana (Dashboards)
-
-### Primeiro Acesso:
-
-1. Acesse Grafana: http://localhost:3001 (local) ou http://13.58.227.69:3001 (produção)
-2. Login:
-   - **Usuário**: `admin`
-   - **Senha**: `admin`
-3. (Opcional) Alterar senha no primeiro login
-
-### Adicionar Prometheus como Data Source:
-
-1. Vá em **Configuration** → **Data Sources** → **Add data source**
-2. Selecione **Prometheus**
-3. Configure:
-   - **URL**: `http://prometheus:9090` (ou `http://localhost:9090` se estiver fora do Docker)
-   - Deixe as outras opções padrão
-4. Clique em **Save & Test**
-
-### Importar Dashboards Prontos:
-
-1. Vá em **Dashboards** → **Import**
-2. Importe estes dashboards públicos pelo ID:
-
-   | Dashboard | ID | Descrição |
-   |-----------|----|-----------|
-   | **Node Exporter Full** | `1860` | Métricas completas do servidor (CPU, RAM, Disco) |
-   | **Docker Container & Host Metrics** | `179` | Métricas dos containers Docker |
-   | **PostgreSQL Database** | `9628` | Métricas do banco de dados |
-   | **cAdvisor** | `14282` | Análise detalhada dos containers |
-
-3. Selecione **Prometheus** como data source
-4. Clique em **Import**
-
-### Criar Dashboard Customizado:
-
-- Clique em **+** → **Dashboard** → **Add new panel**
-- Use queries PromQL para métricas específicas
-- Exemplo de queries úteis:
-  ```promql
-  # CPU do sistema
-  100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
-
-  # Memória usada
-  node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
-
-  # Conexões ativas do PostgreSQL
-  pg_stat_database_numbackends{datname="devops"}
-  ```
-
----
-
-## 🔗 Links Úteis
-
-- **Repositório GitHub**: https://github.com/edlesonjrr/Blog
-- **GitHub Actions (CI/CD)**: https://github.com/edlesonjrr/Blog/actions
-- **Documentação AWS**: [AWS_DEPLOYMENT_GUIDE.md](./AWS_DEPLOYMENT_GUIDE.md)
-- **Prometheus Docs**: https://prometheus.io/docs/
-- **Grafana Docs**: https://grafana.com/docs/
-- **Docker Compose Docs**: https://docs.docker.com/compose/
-
----
-
-## 🛠️ Comandos Úteis
-
-### Docker:
-```bash
-# Ver logs de um serviço específico
-docker-compose logs -f backend
-docker-compose logs -f postgres
-docker-compose logs -f prometheus
-
-# Restart de um serviço específico
-docker-compose restart backend
-
-# Ver uso de recursos dos containers
-docker stats
-
-# Remover volumes (⚠️ apaga dados!)
-docker-compose down -v
-```
-
-### Git Workflow:
-```bash
-# Desenvolvimento
-git checkout dev
-git add .
-git commit -m "feat: nova funcionalidade"
-git push origin dev
-
-# Deploy para Staging
-git checkout staging
-git merge dev
-git push origin staging  # ← Aciona CI/CD
-
-# Deploy para Production
-git checkout main
-git merge staging
-git push origin main  # ← Aciona CI/CD
-```
-
-### PostgreSQL:
-```bash
-# Acessar o banco dentro do container
-docker exec -it postgres psql -U postgres -d devops
-
-# Backup do banco
-docker exec postgres pg_dump -U postgres devops > backup.sql
-
-# Restore do banco
-docker exec -i postgres psql -U postgres devops < backup.sql
-```
-
----
-
-## 📋 Checklist DevOps
-
-- [x] Aplicação com Frontend + Backend + Database
-- [x] Docker & Docker Compose
-- [x] PostgreSQL com migrations automáticas
-- [x] CI/CD com GitHub Actions
-- [x] Deploy automático na AWS EC2
-- [x] Monitoramento com Prometheus
-- [x] Visualização com Grafana
-- [x] Métricas do sistema (Node Exporter)
-- [x] Métricas do banco (Postgres Exporter)
-- [x] Métricas dos containers (cAdvisor)
-- [x] GIT com 3 branches (dev, staging, main)
-- [x] Health checks configurados
-- [x] API REST documentada
-- [x] Postman Collection
-- [x] cAdvisor (no lugar do zabixx)
-
----
-
-## 👨‍💻 Autor
-
-- **Guilherme Leal**
-- **Edleson Junior**
-- **Lauro Viana**
-- **Anthony Ramos**
-- **Arthur Cabral**
-
-- GitHub: [@edlesonjrr](https://github.com/edlesonjrr)
-
----
-
-## 📝 Licença
-
-Este projeto foi criado para fins educacionais (Projeto DevOps).
-
----
-
-**🎉 Projeto completo com aplicação full-stack + DevOps + Monitoramento!**
+Academic project by Guilherme Leal, Edleson Junior, Lauro Viana, Anthony Ramos,
+and Arthur Cabral.
